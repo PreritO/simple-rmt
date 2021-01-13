@@ -98,6 +98,8 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
               = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
         npulog(profile, std::cout << module_stack << " received message "
               << received_pkt->id() << std::endl;)
+        npulog(normal, std::cout << module_stack << " received message "
+              << received_pkt->id() << std::endl;)
         if (parent->has_config) {
           MatchStageConfig &config = parent->config;
           std::string stage_name = config.name;

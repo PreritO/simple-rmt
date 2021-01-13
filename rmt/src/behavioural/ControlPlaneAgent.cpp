@@ -148,16 +148,17 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
 
   std::shared_ptr<AddTableEntry> msg = std::make_shared<AddTableEntry>();
 
-  msg->table_name = cmd->get_table_name();
+  std::string table_name = cmd->get_table_name();
+  msg->table_name = table_name;
   msg->match_key = keys;
   msg->action_name = cmd->get_action().get_name();
   msg->action_data = action_data;
 
   npulog(profile, std::cout
-        << "Sending AddTableEntry message to ControlPlaneAgent. "
+        << "Sending AddTableEntry message from ControlPlaneAgent. "
         << msg->table_name << " --> " << msg->match_key_str << std::endl;)
   npulog(normal, std::cout
-        << "Sending AddTableEntry message to ControlPlaneAgent. "
+        << "Sending AddTableEntry message from ControlPlaneAgent. "
         << msg->table_name << " --> " << msg->match_key_str << std::endl;)
   to_ingress->put(msg);
 
@@ -167,6 +168,9 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
 
   if (std::dynamic_pointer_cast<TableEntryAdded>(reply)) {
     auto msg = std::dynamic_pointer_cast<TableEntryAdded>(reply);
+    // TODO: this is where we update the table size - PO
+    // updateMemUsage(table_name, 80);
+    // cout << "CPAgent: table name - " << table_name << ", new size: " << getMemUsage(table_name) << endl;
     return cmd->success_result(msg->handle);
   } else {
     return cmd->failure_result();
@@ -234,4 +238,17 @@ std::shared_ptr<pfp::cp::CommandResult>
 ControlPlaneAgent::process(pfp::cp::EndTransactionCommand *cmd) {
   cout << "End Transaction Command at ControlPlaneAgent" << endl;
   return nullptr;
+}
+
+void ControlPlaneAgent::updateMemUsage(std::string table_name, uint64_t addtousage) {
+  table_mem_usage[table_name] =
+      table_mem_usage[table_name] + addtousage;
+  increment_counter(table_name, addtousage);
+  // outlog << "@" << sc_time_stamp() << ","
+  //        << table_name << "," << addtousage << std::endl;
+  return;
+}
+// Reports memusage for a table
+uint64_t ControlPlaneAgent::getMemUsage(std::string table_name) {
+  return table_mem_usage[table_name];
 }

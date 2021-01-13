@@ -27,7 +27,7 @@ class SramTrieWrapper: public Trie<T> {
  private:
   void resolve_ports();
 
-  sc_port<SramSearchEngineS> *tse_port = nullptr;
+  sc_port<SramSearchEngineS> *sse_port = nullptr;
   sc_object* current_scmodule;
 };
 
@@ -40,7 +40,7 @@ template<class T>
 SramTrieWrapper<T>::SramTrieWrapper(RoutingTableEntry<T> *iRoutingTable,
       int iRoutingTableSize, T iDefaultAction, int iDefaultActionSize)
       : SramTrieWrapper() {
-  (*tse_port)->setDefaultAction(new SramAction<T>(iDefaultAction));
+  (*sse_port)->setDefaultAction(new SramAction<T>(iDefaultAction));
   wait(1, SC_NS);
   RoutingTableEntry<SramActionBase*> *wTable
         = new RoutingTableEntry<SramActionBase*>[iRoutingTableSize];
@@ -50,7 +50,7 @@ SramTrieWrapper<T>::SramTrieWrapper(RoutingTableEntry<T> *iRoutingTable,
     wTable[i].setAction(new SramAction<T>(iRoutingTable[i].getAction()));
     wTable[i].setActionSize(iRoutingTable[i].getActionSize());
   }
-  (*tse_port)->insert(wTable, iRoutingTableSize);
+  (*sse_port)->insert(wTable, iRoutingTableSize);
   delete [] wTable;
 }
 
@@ -69,11 +69,11 @@ void SramTrieWrapper<T>::update(RoutingTableEntry<T> *iRoutingTable,
       wTable[i].setAction(new SramAction<T>(iRoutingTable[i].getAction()));
       wTable[i].setActionSize(iRoutingTable[i].getActionSize());
     }
-    (*tse_port)->insert(wTable, iRoutingTableSize);
+    (*sse_port)->insert(wTable, iRoutingTableSize);
     delete [] wTable;
   } else if (iAction == Trie<T>::Action::Remove) {
     for (int i = 0; i < iRoutingTableSize; i++) {
-      (*tse_port)->remove(iRoutingTable[i].getData());
+      (*sse_port)->remove(iRoutingTable[i].getData());
     }
   } else if (iAction == Trie<T>::Action::Reconstruct) {
     RoutingTableEntry<SramActionBase*> *wTable
@@ -84,21 +84,21 @@ void SramTrieWrapper<T>::update(RoutingTableEntry<T> *iRoutingTable,
       wTable[i].setAction(new SramAction<T>(iRoutingTable[i].getAction()));
       wTable[i].setActionSize(iRoutingTable[i].getActionSize());
     }
-    (*tse_port)->reconstruct(wTable, iRoutingTableSize);
+    (*sse_port)->reconstruct(wTable, iRoutingTableSize);
     delete [] wTable;
   }
 }
 
 template <class T>
 T SramTrieWrapper<T>::exactPrefixMatch(BitString iPrefix) const {
-  SramActionBase* action_base = (*tse_port)->exactSearch(iPrefix);
+  SramActionBase* action_base = (*sse_port)->exactSearch(iPrefix);
   SramAction<T>* action = static_cast<SramAction<T>*>(action_base);
   return action->getAction();
 }
 
 template <class T>
 T SramTrieWrapper<T>::longestPrefixMatch(BitString iPrefix) const {
-  SramActionBase* action_base = (*tse_port)->search(iPrefix);
+  SramActionBase* action_base = (*sse_port)->search(iPrefix);
   SramAction<T>* action = static_cast<SramAction<T>*>(action_base);
   return action->getAction();
 }
@@ -108,16 +108,16 @@ void SramTrieWrapper<T>::resolve_ports() {
   sc_process_handle this_process = sc_get_current_process_handle();
   current_scmodule = this_process.get_parent_object();
   std::vector<sc_object *> children = current_scmodule->get_child_objects();
-  sc_port<SramSearchEngineS> *tse_portt = nullptr;
+  sc_port<SramSearchEngineS> *sse_portt = nullptr;
 
   for (auto& each_child : children) {
     if (dynamic_cast< sc_port<SramSearchEngineS> *>(each_child)) {
-      tse_portt = dynamic_cast< sc_port<SramSearchEngineS> *>(each_child);
-      std::string portname = tse_portt->basename();
+      sse_portt = dynamic_cast< sc_port<SramSearchEngineS> *>(each_child);
+      std::string portname = sse_portt->basename();
       if (portname.find("port_0") != std::string::npos) {
-        tse_port = dynamic_cast< sc_port<SramSearchEngineS> *>(each_child);
+        sse_port = dynamic_cast< sc_port<SramSearchEngineS> *>(each_child);
       }
-      // npulog(std::cout << "TSE Port: " << tse_portt->kind() << std::endl;)
+      // npulog(std::cout << "SSE Port: " << sse_portt->kind() << std::endl;)
     }
   }
 }

@@ -32,7 +32,7 @@
 #include <string>
 #include "pfpsim/core/PFPObject.h"
 #include "ControlPlaneAgent.h"
-#include "MatchTable.h"
+#include "SRAMMatchTable.h"
 
 const std::string module_name_ = "RMTMessage";
 
@@ -72,7 +72,7 @@ void AddTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR INSERTING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    MatchTable& match_table = static_cast<MatchTable&>(module);
+    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
 
     npulog(profile, std::cout << "Sending TableEntryAdded message: "
           << table_name << " --> " << match_key_str << std::endl;)
@@ -110,7 +110,7 @@ void ModifyTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR MODIFYING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    MatchTable& match_table = static_cast<MatchTable&>(module);
+    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
 
     npulog(profile, std::cout << "Sending TableEntryModifed message: "
           << table_name << "Handle: " << handle << std::endl;)
@@ -147,7 +147,7 @@ void DeleteTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR MODIFYING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    MatchTable& match_table = static_cast<MatchTable&>(module);
+    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
 
     npulog(profile, std::cout << "Sending TableEntryDeleted message: "
           << table_name << "Handle: " << handle << std::endl;)

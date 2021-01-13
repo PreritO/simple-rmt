@@ -36,8 +36,10 @@
 #include <vector>
 #include <string>
 #include "tlmsizedefs.h"
-#define LPM_TRIE TcamTrieWrapper
-#define EXACT_TRIE HashTrie
+#define LPM_TRIE SramTrieWrapper
+// change this from HashTrie to SramTrieWrapper to use SRAM - PO
+// #define EXACT_TRIE HashTrie
+#define EXACT_TRIE SramTrieWrapper
 #define tlmsize_ValueStruct 10
 #ifdef TARGET_POINTER_SIZE
 #undef TARGET_POINTER_SIZE
@@ -50,7 +52,7 @@
 #include "tries/src/LCTrie.h"
 #include "tries/src/MultibitTrie.h"
 #include "tries/src/RangeTrie.h"
-#include "../TcamTrieWrapper.h"
+#include "../SramTrieWrapper.h"
 
 
 map<string, P4*> P4::instances;

@@ -13,7 +13,7 @@ if [[ $debug_level == "debug" ]] ; then
     if [[ $application == "pfp" ]] ; then 
         pfpdb rmt-sim --args "-Xp4 ../../../apps/pfp_baseline/simple_router.json -Xtpop ../../../apps/pfp_baseline/table.txt -v "$vlvl" -Xin ../../../apps/pfp_baseline/input.pcap -Xvalidation-out output.pcap" -v
     elif [[ $application == "nat" ]]; then
-        pfpdb rmt-sim --args "-Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table.txt -v "$vlvl" -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
+        pfpdb rmt-sim --args "-Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -v "$vlvl" -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     else
         echo ""$application" not yet implemented.."
         exit
@@ -27,9 +27,9 @@ else
         fi
     elif [[ $application == "nat" ]]; then
         if [[ $gdb_level == "gdb" ]] ; then
-            gdb --args ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
+            gdb --args ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         else
-            ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
+            ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         fi
     else 
         echo ""$application" not yet implemented.."

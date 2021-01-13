@@ -67,6 +67,18 @@ class ControlPlaneAgent: public ControlPlaneAgentSIM,
   std::shared_ptr<pfp::cp::CommandResult> process(
         pfp::cp::EndTransactionCommand*) override;
 
+   /**
+   * RMTMessages should update the map for all successfull allocations for a table.
+   * @param addtousage Allocation size
+   */
+  void updateMemUsage(std::string table_name, uint64_t addtousage);
+  /**
+   *  Reports memusage for a table
+   * @param  std::string table name
+   * @return             memusage in bytes
+   */
+  uint64_t getMemUsage(std::string);
+
   void command_processing_thread();
 
  private:
@@ -82,5 +94,8 @@ class ControlPlaneAgent: public ControlPlaneAgentSIM,
 
   MTQueue<std::shared_ptr<RMTMessage>> reply_queue;
   sc_event reply_received;
+
+  //! Map that stores memory usage by table name - PO
+  std::map<std::string, uint64_t> table_mem_usage;
 };
 #endif  // BEHAVIOURAL_CONTROLPLANEAGENT_H_

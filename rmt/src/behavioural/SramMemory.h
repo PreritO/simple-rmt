@@ -50,13 +50,18 @@ public SramMemorySIM {
 /*
 	SramMemory Consturctor
  */
-// TODO(prerit) add config file for memory --> "TSE_Mem_Config.cfg"
 template<typename T>
 SramMemory<T>::SramMemory(sc_module_name nm, pfp::core::PFPObject* parent,
       std::string configfile):SramMemorySIM(nm, parent, configfile) {
-  RD_LATENCY = sc_time(10, SC_NS);
-  WR_LATENCY = sc_time(20, SC_NS);
-  SIZE = 1024;
+  
+  int rdlt = GetParameter("ReadLatency").template get<int>();
+  int wrlt = GetParameter("WriteLatency").template get<int>();
+
+  int mem_size = GetParameter("Capacity").template get<int>();
+
+  RD_LATENCY = sc_time(rdlt, SC_NS);
+  WR_LATENCY = sc_time(wrlt, SC_NS);
+  SIZE = mem_size;
   mem = new SramActionBase*[SIZE];  // allocate the block on host mem in heap
 }
 
