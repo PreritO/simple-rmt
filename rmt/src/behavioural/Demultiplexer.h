@@ -33,6 +33,7 @@
 #include <vector>
 #include <string>
 #include "structural/DemultiplexerSIM.h"
+#include <fstream>
 
 class Demultiplexer: public DemultiplexerSIM {
  public:
@@ -51,7 +52,7 @@ class Demultiplexer: public DemultiplexerSIM {
   void Demultiplexer_PortServiceThread();
   void DemultiplexerThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;
-
+  std::ofstream outlog;
   int next_write_port;  // next output to write to
 };
 #endif  // BEHAVIOURAL_DEMULTIPLEXER_H_
