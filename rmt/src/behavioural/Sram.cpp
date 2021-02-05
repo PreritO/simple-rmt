@@ -74,7 +74,7 @@ int Sram::search(BitString prefix) {
   << " } , result = " << hex << index << " at time " << sc_time_stamp() << endl;
 #endif
 
-  //wait(sram_delay);
+  //wait(sram_delay); PO - do we need this?
   return index;
 }
 
@@ -82,7 +82,7 @@ int Sram::exactSearch(BitString prefix) {
   int index = 0;
   for (auto it = sram_entries.begin(); it != sram_entries.end(); it++) {
     if (it->getData() == prefix && it->getValid() == true) {
-      // wait(sram_delay);
+      //wait(sram_delay); // PO - again, do we need this?
       return index;
     } else {
       index++;
@@ -236,7 +236,7 @@ BitString Sram::read(unsigned int pos) {
             << " delay = " << sram_delay << endl;
 #endif
 
-  //wait(sram_delay);
+  wait(sram_delay);
   return result;
 }
 

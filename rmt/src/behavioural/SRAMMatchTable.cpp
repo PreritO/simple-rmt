@@ -23,11 +23,6 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
         + parent_->module_name() + "->" + module_name();
   MatchStage* parent = dynamic_cast<MatchStage*>(parent_);
   while (1) {
-//     if (table_in->nb_can_get()) {
-      //wait(table_in->ok_to_get());
-//       wait(1,SC_NS);
-//     } else {
-//       // read input
       auto received_pkt = table_in->get();
       if (received_pkt->data_type() == "PacketHeaderVector") {
         std::shared_ptr<PacketHeaderVector> phv =
@@ -76,7 +71,7 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
                     << " - no next stage for packet " << phv->id() << endl;)
               phv->set_next_table("");
             }
-            // wait(1, SC_NS); // add this back in - PO
+            //wait(1, SC_NS);
           } else {
             npulog(profile, cout << module_stack
                   << " is not the next stage for packet " << phv->id()
@@ -87,9 +82,6 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
                 << " is an empty stage. Writing packet to output port."
                 << endl;)
         }
-      //   if (!table_out->nb_can_put()) {
-      //     wait(table_out->ok_to_put());
-      //   }
         // Write packet
         npulog(profile, std::cout << module_stack << " wrote packet "
               << phv->id() << std::endl;)

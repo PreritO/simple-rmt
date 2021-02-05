@@ -29,6 +29,7 @@ else
         if [[ $gdb_level == "gdb" ]] ; then
             gdb --args ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         else
+            echo "using nat_table_short"
             ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         fi
     else 

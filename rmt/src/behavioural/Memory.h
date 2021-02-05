@@ -72,10 +72,11 @@ void Memory<T>::write(TLMAddress addr, T data) {
     memory_map.erase(obj);
   }
   memory_map.insert(std::pair<TLMAddress, T>(addr, data));
-  // wait(write_delay);
+  wait(write_delay);
   rw_mutex.unlock();
 }
 
+//PO - how is this function call different from sram:read logic?
 template<typename T>
 T Memory<T>::read(TLMAddress addr) {
   rw_mutex.lock();
@@ -84,7 +85,7 @@ T Memory<T>::read(TLMAddress addr) {
   if (result != memory_map.end()) {
     data = result->second;
   }
-  // wait(read_delay);
+  wait(read_delay);
   rw_mutex.unlock();
   return data;
 }
