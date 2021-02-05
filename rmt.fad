@@ -26,7 +26,7 @@ PE PacketGenerator("PacketGeneratorConfig.cfg") {
   QueueWrI out;
 };
 
-PE Logger("LoggerConfig.cfg") {
+PE OutputLogger("LoggerConfig.cfg") {
 	QueueRdI in;
 };
 
@@ -327,7 +327,7 @@ PE RMT implements ControlPlaneAgentS {
 PE top {
   Queue ingress_queue, egress_queue;
   PacketGenerator pktgen;
-  Logger logger;
+  OutputLogger logger;
   RMT rmt;
   ControlPlane control_plane;
 
