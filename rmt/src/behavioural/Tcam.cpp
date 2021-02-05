@@ -142,11 +142,11 @@ void Tcam::insert(BitString prefix, unsigned int pos) {
     advance(it, pos);
     TcamEntry entry(prefix);
     (*it) = entry;
-    waitTime = tcam_delay;
+    //waitTime = tcam_delay;
   } else if (pos == tcam_entries.size()) {
     TcamEntry entry(prefix);
     tcam_entries.insert(tcam_entries.end(), entry);
-    waitTime = tcam_delay;
+    //waitTime = tcam_delay;
   } else {
     int diff = pos - static_cast<int>(tcam_entries.size());
     for (int index = 0; index < diff; index++) {
@@ -155,7 +155,7 @@ void Tcam::insert(BitString prefix, unsigned int pos) {
     }
     TcamEntry entry(prefix);
     tcam_entries.insert(tcam_entries.end(), entry);
-    waitTime =(diff + 1)*tcam_delay;
+    //waitTime =(diff + 1)*tcam_delay;
   }
 
 #if debug_tcam_mem_transaction
@@ -164,7 +164,7 @@ void Tcam::insert(BitString prefix, unsigned int pos) {
   << sc_time_stamp() << " delay = " << tcam_delay << endl;
 #endif
 
-  wait(waitTime);
+  //wait(waitTime);
 }
 
 /// ========================================
@@ -187,11 +187,11 @@ void Tcam::insertAndShift(BitString prefix, unsigned int pos) {
     advance(it, pos);
     TcamEntry entry(prefix);
     tcam_entries.insert(it, entry);
-    waitTime = (static_cast<int>(tcam_entries.size()) - pos)*tcam_delay;
+    //waitTime = (static_cast<int>(tcam_entries.size()) - pos)*tcam_delay;
     } else if (pos == tcam_entries.size()) {
         TcamEntry entry(prefix);
         tcam_entries.insert(tcam_entries.end(), entry);
-        waitTime = tcam_delay;
+        //waitTime = tcam_delay;
     } else {
       int diff = pos - static_cast<int>(tcam_entries.size());
       for (int index = 0; index < diff - 1; index++) {
@@ -200,7 +200,7 @@ void Tcam::insertAndShift(BitString prefix, unsigned int pos) {
       }
         TcamEntry entry(prefix);
         tcam_entries.insert(tcam_entries.end(), entry);
-        waitTime = (diff + 1)*tcam_delay;
+        //waitTime = (diff + 1)*tcam_delay;
     }
 
 #if debug_tcam_mem_transaction
@@ -209,7 +209,7 @@ void Tcam::insertAndShift(BitString prefix, unsigned int pos) {
   << sc_time_stamp() << " delay = " << waitTime << endl;
 #endif
 
-  wait(waitTime);
+  //wait(waitTime);
 }
 
 /// ========================================
@@ -223,7 +223,7 @@ void Tcam::remove(unsigned int pos) {
     auto it = tcam_entries.begin();
     advance(it, pos);
     it->setValid(false);
-    wait(tcam_delay);
+    //wait(tcam_delay);
     return;
   }
 }
@@ -239,7 +239,7 @@ void Tcam::removeAndShift(unsigned int pos) {
     auto it = tcam_entries.begin();
     advance(it, pos);
     tcam_entries.erase(it);
-    wait((tcam_entries.size() - pos + 1)*tcam_delay);
+    //wait((tcam_entries.size() - pos + 1)*tcam_delay);
   }
 }
 
@@ -266,7 +266,7 @@ BitString Tcam::read(unsigned int pos) {
             << " delay = " << tcam_delay << endl;
 #endif
 
-  wait(tcam_delay);
+  //wait(tcam_delay);
   return result;
 }
 

@@ -105,7 +105,7 @@ void MatchTable::MatchTableThread(std::size_t thread_id) {
                     << " - no next stage for packet " << phv->id() << endl;)
               phv->set_next_table("");
             }
-            wait(1, SC_NS);
+            // wait(1, SC_NS); // add back in - PO
           } else {
             npulog(profile, cout << module_stack
                   << " is not the next stage for packet " << phv->id()

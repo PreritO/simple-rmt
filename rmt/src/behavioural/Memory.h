@@ -61,7 +61,7 @@ public MemorySIM {
 template<typename T>
 Memory<T>::Memory(sc_module_name nm, pfp::core::PFPObject* parent,
       std::string configfile):MemorySIM(nm, parent, configfile),
-      read_delay(10, SC_NS), write_delay(20, SC_NS) {
+      read_delay(1, SC_NS), write_delay(1, SC_NS) {
 }
 
 template<typename T>

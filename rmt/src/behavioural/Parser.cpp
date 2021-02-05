@@ -52,10 +52,10 @@ void Parser::Parser_PortServiceThread() {
 void Parser::ParserThread(std::size_t thread_id) {
   std::string module_stack = parent_->module_name() + "->" + module_name();
   while (1) {
-    if (!parser_in->nb_can_get()) {
-      wait(parser_in->ok_to_get());
-    } else {
-      // Read input
+    // if (!parser_in->nb_can_get()) {
+    //   wait(parser_in->ok_to_get());
+    // } else {
+    //   // Read input
       auto received = parser_in->get();
       std::shared_ptr<PacketHeaderVector> packet = nullptr;
       if (received->data_type() == "InputStimulus") {  // ingress only
@@ -109,7 +109,7 @@ void Parser::ParserThread(std::size_t thread_id) {
             ->parse(packet->packet().get());
 
       // wait number of states * 1 ns
-      wait(num_states, SC_NS);
+      // wait(num_states, SC_NS); // add back in - PO
 
       npulog(profile, std::cout << module_stack << " parsed packet "
             << packet->id() << " (" << num_states << " states)" << std::endl;)
@@ -141,15 +141,15 @@ void Parser::ParserThread(std::size_t thread_id) {
       packet->set_next_table(first_table);
 
       // Wait until the parser can put
-      if (!parser_out->nb_can_put()) {
-        wait(parser_out->ok_to_put());
-      }
+      // if (!parser_out->nb_can_put()) {
+      //   wait(parser_out->ok_to_put());
+      // }
       // Write packet to next module
       npulog(profile, std::cout << module_stack << " wrote packet "
             << packet->id() << std::endl;)
       parser_out->put(packet);
     }
-  }
+  // }
 }
 
 void Parser::set_first_table(std::string table) {

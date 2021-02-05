@@ -78,7 +78,7 @@ void Buffer::BufferThread(std::size_t thread_id) {
     }
 
     // wait
-    wait(1, SC_NS);
+   // wait(1, SC_NS); // add back in - PO
 
     // read queue
     auto received = buffer_queue.pop();

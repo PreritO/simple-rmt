@@ -75,7 +75,7 @@ TcamTrieWrapper<T>::TcamTrieWrapper(RoutingTableEntry<T> *iRoutingTable,
       int iRoutingTableSize, T iDefaultAction, int iDefaultActionSize)
       : TcamTrieWrapper() {
   (*tse_port)->setDefaultAction(new TcamAction<T>(iDefaultAction));
-  wait(1, SC_NS);
+  //wait(1, SC_NS);
   RoutingTableEntry<TcamActionBase*> *wTable
         = new RoutingTableEntry<TcamActionBase*>[iRoutingTableSize];
   for (int i = 0; i < iRoutingTableSize; i++) {

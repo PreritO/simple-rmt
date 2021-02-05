@@ -41,7 +41,7 @@ SramTrieWrapper<T>::SramTrieWrapper(RoutingTableEntry<T> *iRoutingTable,
       int iRoutingTableSize, T iDefaultAction, int iDefaultActionSize)
       : SramTrieWrapper() {
   (*sse_port)->setDefaultAction(new SramAction<T>(iDefaultAction));
-  wait(1, SC_NS);
+  //wait(1, SC_NS); // add this back in
   RoutingTableEntry<SramActionBase*> *wTable
         = new RoutingTableEntry<SramActionBase*>[iRoutingTableSize];
   for (int i = 0; i < iRoutingTableSize; i++) {

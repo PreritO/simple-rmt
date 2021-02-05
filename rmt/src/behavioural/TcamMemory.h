@@ -52,7 +52,7 @@ public TcamMemorySIM {
 
   virtual void write(TcamActionBase* action, unsigned int addr) {
     if (addr < SIZE) {
-      wait(WR_LATENCY);
+      //wait(WR_LATENCY);
       // npulog(profile, std::cout << "Writing to MEM @ addr " << std::endl;)
       mem[addr] = action;
     } else {
@@ -62,7 +62,7 @@ public TcamMemorySIM {
 
   virtual TcamActionBase* read(unsigned int addr) {
     if (addr < SIZE) {
-      wait(RD_LATENCY);
+      //wait(RD_LATENCY);
       return mem[addr];
     } else {
       SC_REPORT_ERROR("Tcam Memory Read", "Out of address range!");

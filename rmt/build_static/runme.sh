@@ -36,3 +36,5 @@ else
         exit
     fi
 fi
+
+#sample call: ./runme.sh none nat normal none

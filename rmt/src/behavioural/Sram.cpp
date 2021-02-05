@@ -74,7 +74,7 @@ int Sram::search(BitString prefix) {
   << " } , result = " << hex << index << " at time " << sc_time_stamp() << endl;
 #endif
 
-  wait(sram_delay);
+  //wait(sram_delay);
   return index;
 }
 
@@ -82,7 +82,7 @@ int Sram::exactSearch(BitString prefix) {
   int index = 0;
   for (auto it = sram_entries.begin(); it != sram_entries.end(); it++) {
     if (it->getData() == prefix && it->getValid() == true) {
-      wait(sram_delay);
+      // wait(sram_delay);
       return index;
     } else {
       index++;
@@ -134,7 +134,7 @@ void Sram::insert(BitString prefix, unsigned int pos) {
   << sc_time_stamp() << " delay = " << sram_delay << endl;
 #endif
 
-  wait(waitTime);
+  //wait(waitTime);
 }
 
 /// ========================================
@@ -157,11 +157,11 @@ void Sram::insertAndShift(BitString prefix, unsigned int pos) {
     advance(it, pos);
     SramEntry entry(prefix);
     sram_entries.insert(it, entry);
-    waitTime = (static_cast<int>(sram_entries.size()) - pos)*sram_delay;
+    //waitTime = (static_cast<int>(sram_entries.size()) - pos)*sram_delay;
     } else if (pos == sram_entries.size()) {
         SramEntry entry(prefix);
         sram_entries.insert(sram_entries.end(), entry);
-        waitTime = sram_delay;
+        //waitTime = sram_delay;
     } else {
       int diff = pos - static_cast<int>(sram_entries.size());
       for (int index = 0; index < diff - 1; index++) {
@@ -170,7 +170,7 @@ void Sram::insertAndShift(BitString prefix, unsigned int pos) {
       }
         SramEntry entry(prefix);
         sram_entries.insert(sram_entries.end(), entry);
-        waitTime = (diff + 1)*sram_delay;
+        //waitTime = (diff + 1)*sram_delay;
     }
 
 #if debug_sram_mem_transaction
@@ -179,7 +179,7 @@ void Sram::insertAndShift(BitString prefix, unsigned int pos) {
   << sc_time_stamp() << " delay = " << waitTime << endl;
 #endif
 
-  wait(waitTime);
+  //wait(waitTime);
 }
 
 /// ========================================
@@ -193,7 +193,7 @@ void Sram::remove(unsigned int pos) {
     auto it = sram_entries.begin();
     advance(it, pos);
     it->setValid(false);
-    wait(sram_delay);
+    //wait(sram_delay);
     return;
   }
 }
@@ -209,7 +209,7 @@ void Sram::removeAndShift(unsigned int pos) {
     auto it = sram_entries.begin();
     advance(it, pos);
     sram_entries.erase(it);
-    wait((sram_entries.size() - pos + 1)*sram_delay);
+    //wait((sram_entries.size() - pos + 1)*sram_delay);
   }
 }
 
@@ -236,7 +236,7 @@ BitString Sram::read(unsigned int pos) {
             << " delay = " << sram_delay << endl;
 #endif
 
-  wait(sram_delay);
+  //wait(sram_delay);
   return result;
 }
 

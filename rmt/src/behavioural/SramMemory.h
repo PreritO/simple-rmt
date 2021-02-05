@@ -22,7 +22,7 @@ public SramMemorySIM {
 
   virtual void write(SramActionBase* action, unsigned int addr) {
     if (addr < SIZE) {
-      wait(WR_LATENCY);
+      //wait(WR_LATENCY);
       // npulog(profile, std::cout << "Writing to MEM @ addr " << std::endl;)
       mem[addr] = action;
     } else {
