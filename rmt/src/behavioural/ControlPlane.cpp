@@ -166,6 +166,16 @@ std::shared_ptr<pfp::cp::CommandResult> ControlPlane::process(
   return nullptr;
 }
 
+std::shared_ptr<pfp::cp::CommandResult> ControlPlane::process(
+      pfp::cp::BeginTransactionCommand*) {
+  return nullptr;
+}
+
+std::shared_ptr<pfp::cp::CommandResult> ControlPlane::process(
+      pfp::cp::EndTransactionCommand*) {
+  return nullptr;
+}
+
 // For pfp::cp::ResultProcessor
 void ControlPlane::process(pfp::cp::InsertResult *res) {
   auto cmd = dynamic_cast<pfp::cp::InsertCommand*>(res->command.get());
