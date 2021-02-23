@@ -50,9 +50,9 @@ void Deparser::Deparser_PortServiceThread() {
 void Deparser::DeparserThread(std::size_t thread_id) {
   std::string module_stack = parent_->module_name() + "->" + module_name();
   while (1) {
-//     if (!deparser_in->nb_can_get()) {
-//       wait(deparser_in->ok_to_get());
-//     } else {
+    if (!deparser_in->nb_can_get()) {
+      wait(deparser_in->ok_to_get());
+    } else {
 //       // Read input
       auto received = deparser_in->get();
       if (received->data_type() == "PacketHeaderVector") {
@@ -122,9 +122,9 @@ void Deparser::DeparserThread(std::size_t thread_id) {
         }
 
         // Wait until the deparser can put
-      //   if (!deparser_out->nb_can_put()) {
-      //     wait(deparser_out->ok_to_put());
-      //   }
+        if (!deparser_out->nb_can_put()) {
+          wait(deparser_out->ok_to_put());
+        }
         // write packet
         npulog(profile, std::cout << module_stack << " wrote packet "
               << phv->id() << std::endl;)
@@ -134,6 +134,6 @@ void Deparser::DeparserThread(std::size_t thread_id) {
               << received->id() <<std::endl;)
         deparser_out->put(received);
       }
-//     }
+    }
   }
 }

@@ -48,9 +48,9 @@ void EgressDemultiplexer::EgressDemultiplexer_PortServiceThread() {
 
 void EgressDemultiplexer::EgressDemultiplexerThread(std::size_t thread_id) {
   while (1) {
-    // if (!input->nb_can_get()) {
-    //   wait(input->ok_to_get());
-    // } else {
+    if (!input->nb_can_get()) {
+      wait(input->ok_to_get());
+    } else {
     //   // read input
       auto received = input->get();
       if (received->data_type() == "PacketHeaderVector") {
@@ -62,6 +62,6 @@ void EgressDemultiplexer::EgressDemultiplexerThread(std::size_t thread_id) {
               << " to agent." << std::endl;)
         to_agent->put(received);
       }
-    // }
+    }
   }
 }

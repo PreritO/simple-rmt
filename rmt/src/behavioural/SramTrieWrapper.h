@@ -41,7 +41,7 @@ SramTrieWrapper<T>::SramTrieWrapper(RoutingTableEntry<T> *iRoutingTable,
       int iRoutingTableSize, T iDefaultAction, int iDefaultActionSize)
       : SramTrieWrapper() {
   (*sse_port)->setDefaultAction(new SramAction<T>(iDefaultAction));
-  //wait(1, SC_NS); // add this back in
+  wait(1, SC_NS); //has no impact on throughput (as it shouldn't because only called when populating entries in hash table)
   RoutingTableEntry<SramActionBase*> *wTable
         = new RoutingTableEntry<SramActionBase*>[iRoutingTableSize];
   for (int i = 0; i < iRoutingTableSize; i++) {
