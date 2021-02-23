@@ -58,7 +58,7 @@ void Demultiplexer::DemultiplexerThread(std::size_t thread_id) {
           bool not_put = true;
           while (not_put) {
             if (demux_output[next_write_port]->nb_can_put()) {
-              //wait(1, SC_NS);
+              wait(1, SC_NS);
               if(obj->data_type() == "InputStimulus") {
                 npulog(profile, cout << module_name() << " received packet "
                     << obj->id() << endl;)

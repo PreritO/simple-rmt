@@ -109,7 +109,7 @@ void Parser::ParserThread(std::size_t thread_id) {
             ->parse(packet->packet().get());
 
       // wait number of states * 1 ns
-      //wait(num_states, SC_NS); // add back in - PO
+      wait(num_states, SC_NS); // add back in - PO
 
       npulog(profile, std::cout << module_stack << " parsed packet "
             << packet->id() << " (" << num_states << " states)" << std::endl;)

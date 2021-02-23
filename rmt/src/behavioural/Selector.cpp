@@ -65,9 +65,9 @@ void Selector::SelectorThread(std::size_t thread_id) {
       }
       npulog(profile, std::cout << module_stack << " SELECTOR: received "
             << received_type << " " << received->id() << " at " << sc_time_stamp().to_default_time_units() << std::endl;)
-      // if (parent->has_config) {
-      //   wait(1, SC_NS);
-      // }
+      if (parent->has_config) {
+        wait(1, SC_NS);
+      }
       // if (!select_out->nb_can_put()) {
       //   wait(select_out->ok_to_put());
       // }
