@@ -55,6 +55,10 @@ void PacketGenerator::PacketGeneratorThread(std::size_t thread_id) {
   } else {
       pathToUse = inputpath;
   }
+  packetTxRate = GetParameter("tx_rate").get();
+  if (packetTxRate == 0) {
+    SC_REPORT_ERROR("Packet generator Constructor", "Invalid tx rate configuration paramter");
+  }
   PcapRepeater pcapRepeater(pathToUse);
 
   auto packet_gen = std::bind(&PcapRepeater::getNext, &pcapRepeater);
@@ -86,7 +90,7 @@ void PacketGenerator::PacketGeneratorThread(std::size_t thread_id) {
     // wait(10*1000*1000, SC_NS);
     // wait(200, SC_NS);
     // wait(10*100*10, SC_NS);
-    wait(0.1, SC_NS); // this is the transmission rate - TODO (Prerit) - make this a parameter that can be passed in via config file
+    wait((1/(packetTxRate*1.0)), SC_NS); // this is the transmission rate - TODO (Prerit) - make this a parameter that can be passed in via config file
 #endif
 
     std::size_t context         = 1;  // uid_contexts(rng);
