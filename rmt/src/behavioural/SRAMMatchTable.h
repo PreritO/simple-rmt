@@ -14,6 +14,7 @@ class SRAMMatchTable: public SRAMMatchTableSIM {  // NOLINT(whitespace/line_leng
 
  public:
   void init();
+  int pktTxRate;
 
  private:
   void SRAMMatchTable_PortServiceThread();

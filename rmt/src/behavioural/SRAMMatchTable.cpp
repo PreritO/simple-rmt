@@ -9,6 +9,10 @@ SRAMMatchTable::SRAMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&SRAMMatchTable::SRAMMatchTableThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void SRAMMatchTable::init() {
@@ -71,7 +75,7 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
                     << " - no next stage for packet " << phv->id() << endl;)
               phv->set_next_table("");
             }
-            //wait(1, SC_NS);
+            wait(1/(pktTxRate*1.0), SC_NS);
           } else {
             npulog(profile, cout << module_stack
                   << " is not the next stage for packet " << phv->id()

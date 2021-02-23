@@ -260,7 +260,7 @@ PE Pipeline {
   bind deparser.memory_manager {memory_manager};
 };
 
-PE Buffer {
+PE Buffer("PacketGeneratorConfig.cfg") {
   QueueRdI buffer_in;
   QueueWrI buffer_out;
 };
