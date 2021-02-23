@@ -59,7 +59,7 @@ void Multiplexer::MultiplexerThread(std::size_t thread_id) {
           bool not_put = true;
           while (not_put) {
             if (mux_output[next_write_port]->nb_can_put()) {
-              wait(1, SC_NS);
+              //wait(1, SC_NS);
               mux_output[next_write_port++]->put(obj);
               not_put = false;
             } else {

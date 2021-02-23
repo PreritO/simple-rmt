@@ -45,7 +45,7 @@ class VLIWAction: public VLIWActionSIM {
 
  public:
   void init();
-
+  int pktTxRate;
  private:
   void VLIWAction_PortServiceThread();
   void VLIWActionThread(std::size_t thread_id);

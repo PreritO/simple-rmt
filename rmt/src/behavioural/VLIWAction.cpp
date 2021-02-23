@@ -38,6 +38,10 @@ VLIWAction::VLIWAction(sc_module_name nm, pfp::core::PFPObject* parent,
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&VLIWAction::VLIWActionThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void VLIWAction::init() {
@@ -66,8 +70,7 @@ void VLIWAction::VLIWActionThread(std::size_t thread_id) {
             << received_type << " " << received->id() << std::endl;)
       if (parent->has_config) {
         //wait(1, SC_NS); // this impacts the throughput - causing packets to backlog in queue if it's slower than packet generator cadence
-        // if this were to be the same as the packket generator, then we would see a linear scale:
-        wait(0.1, SC_NS);
+        wait(1/(pktTxRate*1.0), SC_NS);
       }
       if (!action_out->nb_can_put()) {
         wait(action_out->ok_to_put());

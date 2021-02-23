@@ -55,7 +55,7 @@ PE SRAMMatchTable {
   SramSearchEngineS sse_port;
 };
 
-PE VLIWAction {
+PE VLIWAction("PacketGeneratorConfig.cfg") {
   QueueRdI action_in;
   QueueWrI action_out;
 };
