@@ -47,6 +47,7 @@ class Demultiplexer: public DemultiplexerSIM {
 
  public:
   void init();
+  int pktTxRate;
 
  private:
   void Demultiplexer_PortServiceThread();

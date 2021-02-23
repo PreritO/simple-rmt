@@ -38,6 +38,10 @@ Selector::Selector(sc_module_name nm, pfp::core::PFPObject* parent,
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&Selector::SelectorThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void Selector::init() {
@@ -66,7 +70,7 @@ void Selector::SelectorThread(std::size_t thread_id) {
       npulog(profile, std::cout << module_stack << " SELECTOR: received "
             << received_type << " " << received->id() << " at " << sc_time_stamp().to_default_time_units() << std::endl;)
       if (parent->has_config) {
-        wait(1, SC_NS);
+        wait(1/(pktTxRate*1.0), SC_NS);
       }
       // if (!select_out->nb_can_put()) {
       //   wait(select_out->ok_to_put());

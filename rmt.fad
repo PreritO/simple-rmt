@@ -12,12 +12,12 @@ PE MemoryManager("MemoryManager.cfg") implements MemoryManagerS {
   MemI mem_port[];
 };
 
-PE Multiplexer {
+PE Multiplexer("PacketGeneratorConfig.cfg") {
   QueueRdI mux_input[];
   QueueWrI mux_output[];
 };
 
-PE Demultiplexer {
+PE Demultiplexer("PacketGeneratorConfig.cfg") {
   QueueRdI demux_input[];
   QueueWrI demux_output[];
 };
@@ -30,7 +30,7 @@ PE OutputLogger("LoggerConfig.cfg") {
 	QueueRdI in;
 };
 
-PE Parser {
+PE Parser("PacketGeneratorConfig.cfg") {
   QueueRdI parser_in;
   QueueWrI parser_out;
 
@@ -44,12 +44,12 @@ PE Deparser {
   MemoryManagerS memory_manager;
 };
 
-PE Selector {
+PE Selector("PacketGeneratorConfig.cfg") {
   QueueRdI select_in;
   QueueWrI select_out;
 };
 
-PE SRAMMatchTable {
+PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
   QueueRdI table_in;
   QueueWrI table_out;
   SramSearchEngineS sse_port;

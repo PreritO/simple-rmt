@@ -46,6 +46,7 @@ class Multiplexer: public MultiplexerSIM {
 
  public:
   void init();
+  int pktTxRate;
 
  private:
   void Multiplexer_PortServiceThread();
