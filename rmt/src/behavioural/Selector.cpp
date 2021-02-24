@@ -56,9 +56,9 @@ void Selector::SelectorThread(std::size_t thread_id) {
   std::string module_stack = parent_->GetParent()->module_name() + "->"
         + parent_->module_name() + "->" + module_name();
   while (1) {
-    // if (!select_in->nb_can_get()) {
-    //   wait(select_in->ok_to_get());
-    // } else {
+    if (!select_in->nb_can_get()) {
+      wait(select_in->ok_to_get());
+    } else {
       // Read input
       auto received = select_in->get();
       std::string received_type;
@@ -72,12 +72,12 @@ void Selector::SelectorThread(std::size_t thread_id) {
       if (parent->has_config) {
         wait(1/(pktTxRate*1.0), SC_NS);
       }
-      // if (!select_out->nb_can_put()) {
-      //   wait(select_out->ok_to_put());
-      // }
+      if (!select_out->nb_can_put()) {
+        wait(select_out->ok_to_put());
+      }
       npulog(profile, std::cout << module_stack << " SELECTOR: wrote " << received_type
             << " " << received->id() << " at " << sc_time_stamp().to_default_time_units() << std::endl;)
       select_out->put(received);
-    // }
+    }
   }
 }

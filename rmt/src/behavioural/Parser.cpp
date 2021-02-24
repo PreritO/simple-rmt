@@ -56,9 +56,9 @@ void Parser::Parser_PortServiceThread() {
 void Parser::ParserThread(std::size_t thread_id) {
   std::string module_stack = parent_->module_name() + "->" + module_name();
   while (1) {
-    // if (!parser_in->nb_can_get()) {
-    //   wait(parser_in->ok_to_get());
-    // } else {
+    if (!parser_in->nb_can_get()) {
+      wait(parser_in->ok_to_get());
+    } else {
     //   // Read input
       auto received = parser_in->get();
       std::shared_ptr<PacketHeaderVector> packet = nullptr;
@@ -145,15 +145,15 @@ void Parser::ParserThread(std::size_t thread_id) {
       packet->set_next_table(first_table);
 
       // Wait until the parser can put
-      // if (!parser_out->nb_can_put()) {
-      //   wait(parser_out->ok_to_put());
-      // }
+      if (!parser_out->nb_can_put()) {
+        wait(parser_out->ok_to_put());
+      }
       // Write packet to next module
       npulog(profile, std::cout << module_stack << " wrote packet "
             << packet->id() << std::endl;)
       parser_out->put(packet);
     }
-  // }
+  }
 }
 
 void Parser::set_first_table(std::string table) {

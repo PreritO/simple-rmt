@@ -22,7 +22,7 @@ public SramMemorySIM {
 
   virtual void write(SramActionBase* action, unsigned int addr) {
     if (addr < SIZE) {
-      //wait(WR_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
+      wait(WR_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
       //npulog(profile, std::cout << "Writing to MEM @ addr " << std::endl;)
       mem[addr] = action;
     } else {
@@ -32,7 +32,7 @@ public SramMemorySIM {
 
   virtual SramActionBase* read(unsigned int addr) {
     if (addr < SIZE) {
-      //wait(RD_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
+      wait(RD_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
       return mem[addr];
     } else {
       SC_REPORT_ERROR("Sram Memory Read", "Out of address range!");

@@ -40,8 +40,10 @@ MemoryManager::MemoryManager(sc_module_name nm , int memPortSize,
   ThreadHandles.push_back(sc_spawn(sc_bind(
         &MemoryManager::MemoryManagerWriteThread, this, 0)));
 
-  // Create memory pool to store packets here - PO
-  //pool = new MemoryPool(0, 256, 2048);
+  // Create memory pool to store packets contents. This is not the rule lookup path, just a place to store the
+  // contents of the packet while the pkthdr traverses through stages... and so for workloads with more pkts
+  // will need to increase the number of blocks here...
+
   int num_blks = GetParameter("num_blks").template get<int>();
   int blk_size = GetParameter("blk_size").template get<int>();
   pool = new MemoryPool(0, num_blks, blk_size);
