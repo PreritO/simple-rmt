@@ -35,9 +35,9 @@ else
         fi
     elif [[ $application == "nat-debug" ]]; then
         if [[ $gdb_level == "gdb" ]] ; then
-            gdb --args ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -Xin ../../../apps/pcaps/1kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
+            gdb --args ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -Xin ../../../apps/pcaps/200flows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         else
-            ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -Xin ../../../apps/pcaps/1kflows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
+            ./rmt-sim -c Configs/ -Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -Xin ../../../apps/pcaps/200flows.pcap -Xvalidation-out reordered-output.pcap -v "$vlvl"
         fi
     else 
         echo ""$application" not yet implemented.."
