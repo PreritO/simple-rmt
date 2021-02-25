@@ -35,10 +35,14 @@ Demultiplexer::Demultiplexer(sc_module_name nm , int demux_outputPortSize,
       int demux_inputPortSize, pfp::core::PFPObject* parent,
       std::string configfile)
       :DemultiplexerSIM(nm , demux_outputPortSize, demux_inputPortSize, parent,
-          configfile), next_write_port(0) {
+          configfile), next_write_port(0), outlog(OUTPUTDIR+"IngressTrace.csv") {
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&Demultiplexer::DemultiplexerThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("DeMux Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void Demultiplexer::init() {
@@ -58,7 +62,14 @@ void Demultiplexer::DemultiplexerThread(std::size_t thread_id) {
           bool not_put = true;
           while (not_put) {
             if (demux_output[next_write_port]->nb_can_put()) {
-              wait(1, SC_NS);
+              wait(1/(pktTxRate*1.0), SC_NS);
+              if(obj->data_type() == "InputStimulus") {
+                npulog(profile, cout << module_name() << " received packet "
+                    << obj->id() << endl;)
+                npulog(normal, cout << module_name() << " received packet "
+                    << obj->id() << endl;)
+                outlog<<obj->id()<<","<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
+              }
               demux_output[next_write_port++]->put(obj);
               not_put = false;
             } else {

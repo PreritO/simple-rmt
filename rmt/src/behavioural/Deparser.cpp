@@ -53,7 +53,7 @@ void Deparser::DeparserThread(std::size_t thread_id) {
     if (!deparser_in->nb_can_get()) {
       wait(deparser_in->ok_to_get());
     } else {
-      // Read input
+//       // Read input
       auto received = deparser_in->get();
       if (received->data_type() == "PacketHeaderVector") {
         // Cast to PHV

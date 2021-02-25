@@ -51,7 +51,7 @@ void EgressDemultiplexer::EgressDemultiplexerThread(std::size_t thread_id) {
     if (!input->nb_can_get()) {
       wait(input->ok_to_get());
     } else {
-      // read input
+    //   // read input
       auto received = input->get();
       if (received->data_type() == "PacketHeaderVector") {
         npulog(profile, std::cout << " Forwarding packet " << received->id()

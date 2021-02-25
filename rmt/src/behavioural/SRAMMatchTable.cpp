@@ -9,6 +9,10 @@ SRAMMatchTable::SRAMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&SRAMMatchTable::SRAMMatchTableThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void SRAMMatchTable::init() {
@@ -23,16 +27,12 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
         + parent_->module_name() + "->" + module_name();
   MatchStage* parent = dynamic_cast<MatchStage*>(parent_);
   while (1) {
-    if (!table_in->nb_can_get()) {
-      wait(table_in->ok_to_get());
-    } else {
-      // read input
       auto received_pkt = table_in->get();
       if (received_pkt->data_type() == "PacketHeaderVector") {
         std::shared_ptr<PacketHeaderVector> phv =
               std::dynamic_pointer_cast<PacketHeaderVector>(received_pkt);
-        npulog(profile, std::cout << module_stack << " received packet "
-              << phv->id() << std::endl;)
+        npulog(profile, std::cout << module_stack << " SRAM MATCH TABLE: received packet "
+              << phv->id() << " at: " << sc_time_stamp().to_default_time_units() <<  std::endl;)
 
         // Check if this stage is configured
         if (parent->has_config) {
@@ -75,7 +75,7 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
                     << " - no next stage for packet " << phv->id() << endl;)
               phv->set_next_table("");
             }
-            wait(1, SC_NS);
+            wait(1/(pktTxRate*1.0), SC_NS);
           } else {
             npulog(profile, cout << module_stack
                   << " is not the next stage for packet " << phv->id()
@@ -86,9 +86,6 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
                 << " is an empty stage. Writing packet to output port."
                 << endl;)
         }
-        if (!table_out->nb_can_put()) {
-          wait(table_out->ok_to_put());
-        }
         // Write packet
         npulog(profile, std::cout << module_stack << " wrote packet "
               << phv->id() << std::endl;)
@@ -97,6 +94,8 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
         std::shared_ptr<RMTMessage> msg
               = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
         npulog(profile, std::cout << module_stack << " received message "
+              << received_pkt->id() << std::endl;)
+        npulog(normal, std::cout << module_stack << " received message "
               << received_pkt->id() << std::endl;)
         if (parent->has_config) {
           MatchStageConfig &config = parent->config;
@@ -119,6 +118,6 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
           table_out->put(received_pkt);
         }
       }
-    }
+//     }
   }
 }

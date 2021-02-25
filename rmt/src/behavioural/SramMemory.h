@@ -22,8 +22,8 @@ public SramMemorySIM {
 
   virtual void write(SramActionBase* action, unsigned int addr) {
     if (addr < SIZE) {
-      wait(WR_LATENCY);
-      // npulog(profile, std::cout << "Writing to MEM @ addr " << std::endl;)
+      wait(WR_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
+      //npulog(profile, std::cout << "Writing to MEM @ addr " << std::endl;)
       mem[addr] = action;
     } else {
       SC_REPORT_ERROR("Sram Memory Write", "Out of address range!");
@@ -32,7 +32,7 @@ public SramMemorySIM {
 
   virtual SramActionBase* read(unsigned int addr) {
     if (addr < SIZE) {
-      wait(RD_LATENCY);
+      wait(RD_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
       return mem[addr];
     } else {
       SC_REPORT_ERROR("Sram Memory Read", "Out of address range!");
@@ -50,13 +50,18 @@ public SramMemorySIM {
 /*
 	SramMemory Consturctor
  */
-// TODO(prerit) add config file for memory --> "TSE_Mem_Config.cfg"
 template<typename T>
 SramMemory<T>::SramMemory(sc_module_name nm, pfp::core::PFPObject* parent,
       std::string configfile):SramMemorySIM(nm, parent, configfile) {
-  RD_LATENCY = sc_time(10, SC_NS);
-  WR_LATENCY = sc_time(20, SC_NS);
-  SIZE = 1024;
+  
+  int rdlt = GetParameter("ReadLatency").template get<int>();
+  int wrlt = GetParameter("WriteLatency").template get<int>();
+
+  int mem_size = GetParameter("Capacity").template get<int>();
+
+  RD_LATENCY = sc_time(rdlt, SC_NS);
+  WR_LATENCY = sc_time(wrlt, SC_NS);
+  SIZE = mem_size;
   mem = new SramActionBase*[SIZE];  // allocate the block on host mem in heap
 }
 

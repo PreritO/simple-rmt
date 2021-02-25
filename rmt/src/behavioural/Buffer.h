@@ -46,6 +46,7 @@ class Buffer: public BufferSIM {
   virtual ~Buffer() = default;
  public:
   void init();
+  int pktTxRate;
  private:
   void Buffer_PortServiceThread();
   void BufferThread(std::size_t thread_id);

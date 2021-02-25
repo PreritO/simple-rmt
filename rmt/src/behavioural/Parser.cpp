@@ -40,6 +40,10 @@ Parser::Parser(sc_module_name nm, pfp::core::PFPObject* parent,
       std::string configfile):ParserSIM(nm, parent, configfile) {
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&Parser::ParserThread, this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void Parser::init() {
@@ -55,7 +59,7 @@ void Parser::ParserThread(std::size_t thread_id) {
     if (!parser_in->nb_can_get()) {
       wait(parser_in->ok_to_get());
     } else {
-      // Read input
+    //   // Read input
       auto received = parser_in->get();
       std::shared_ptr<PacketHeaderVector> packet = nullptr;
       if (received->data_type() == "InputStimulus") {  // ingress only
@@ -108,8 +112,8 @@ void Parser::ParserThread(std::size_t thread_id) {
       int num_states = P4::get("rmt")->get_parser("parser")
             ->parse(packet->packet().get());
 
-      // wait number of states * 1 ns
-      wait(num_states, SC_NS);
+      // wait number of states * 1/pktTxRate ns
+      wait(num_states*(1/(pktTxRate*1.0)), SC_NS);
 
       npulog(profile, std::cout << module_stack << " parsed packet "
             << packet->id() << " (" << num_states << " states)" << std::endl;)

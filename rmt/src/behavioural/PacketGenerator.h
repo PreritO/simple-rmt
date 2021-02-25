@@ -46,6 +46,7 @@ class PacketGenerator: public PacketGeneratorSIM {
 
  public:
   void init();
+  int packetTxRate;
 
  private:
   void PacketGenerator_PortServiceThread();

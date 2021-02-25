@@ -45,6 +45,7 @@ class Selector: public SelectorSIM {
 
  public:
   void init();
+  int pktTxRate;
 
  private:
   void Selector_PortServiceThread();

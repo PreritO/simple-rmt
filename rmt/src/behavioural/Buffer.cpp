@@ -38,6 +38,10 @@ Buffer::Buffer
   ThreadHandles.push_back(sc_spawn(sc_bind(&Buffer::Buffer_PortServiceThread,
         this)));
   ThreadHandles.push_back(sc_spawn(sc_bind(&Buffer::BufferThread, this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void Buffer::init() {
@@ -76,9 +80,7 @@ void Buffer::BufferThread(std::size_t thread_id) {
     while (flag_buffer_empty) {
       wait(condition);
     }
-
-    // wait
-    wait(1, SC_NS);
+    wait(1/(pktTxRate*1.0), SC_NS);
 
     // read queue
     auto received = buffer_queue.pop();

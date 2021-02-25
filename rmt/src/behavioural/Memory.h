@@ -61,7 +61,7 @@ public MemorySIM {
 template<typename T>
 Memory<T>::Memory(sc_module_name nm, pfp::core::PFPObject* parent,
       std::string configfile):MemorySIM(nm, parent, configfile),
-      read_delay(10, SC_NS), write_delay(20, SC_NS) {
+      read_delay(1, SC_NS), write_delay(1, SC_NS) {
 }
 
 template<typename T>
@@ -72,7 +72,9 @@ void Memory<T>::write(TLMAddress addr, T data) {
     memory_map.erase(obj);
   }
   memory_map.insert(std::pair<TLMAddress, T>(addr, data));
-  // wait(write_delay);
+  // Keep this commented because this emulates reading packet contents from memory, something we don't care about
+  // at the moment, we just care about rule lookups from SRAM
+  //wait(write_delay);
   rw_mutex.unlock();
 }
 
@@ -84,7 +86,9 @@ T Memory<T>::read(TLMAddress addr) {
   if (result != memory_map.end()) {
     data = result->second;
   }
-  // wait(read_delay);
+  // Keep this commented because this emulates reading packet contents from memory, something we don't care about
+  // at the moment, we just care about rule lookups from SRAM
+  //wait(read_delay); 
   rw_mutex.unlock();
   return data;
 }

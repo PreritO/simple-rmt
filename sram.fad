@@ -1,7 +1,7 @@
 interface SramMemI;
 service SramS, SramSearchEngineS;
 
-CE SramMemory implements SramMemI;
+CE SramMemory("SRAM-SSE-Config.cfg") implements SramMemI;
 
 PE Sram("SramConfig.cfg") implements SramS {};
 

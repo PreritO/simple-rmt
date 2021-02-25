@@ -45,7 +45,7 @@ class Parser: public ParserSIM {
 
  public:
   void init();
-
+  int pktTxRate;
   void set_first_table(std::string table);
 
  private:

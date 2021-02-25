@@ -33,7 +33,7 @@
 
 PacketGenerator::PacketGenerator(sc_module_name nm,
       pfp::core::PFPObject* parent,
-      std::string configfile):PacketGeneratorSIM(nm, parent, configfile) {
+      std::string configfile):PacketGeneratorSIM(nm, parent, configfile){
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(
         &PacketGenerator::PacketGeneratorThread, this, 0)));
@@ -54,6 +54,10 @@ void PacketGenerator::PacketGeneratorThread(std::size_t thread_id) {
       pathToUse = CONFIGROOT + inputfile;
   } else {
       pathToUse = inputpath;
+  }
+  packetTxRate = GetParameter("tx_rate").get();
+  if (packetTxRate == 0) {
+    SC_REPORT_ERROR("Packet generator Constructor", "Invalid tx rate configuration paramter");
   }
   PcapRepeater pcapRepeater(pathToUse);
 
@@ -86,7 +90,7 @@ void PacketGenerator::PacketGeneratorThread(std::size_t thread_id) {
     // wait(10*1000*1000, SC_NS);
     // wait(200, SC_NS);
     // wait(10*100*10, SC_NS);
-    wait(0.5, SC_NS);
+    wait((1/(packetTxRate*1.0)), SC_NS); // this is the transmission rate - TODO (Prerit) - make this a parameter that can be passed in via config file
 #endif
 
     std::size_t context         = 1;  // uid_contexts(rng);
@@ -99,6 +103,7 @@ void PacketGenerator::PacketGeneratorThread(std::size_t thread_id) {
     std::shared_ptr<InputStimulus> pkt
           = std::make_shared<InputStimulus>(i, data_out);
     out->put(pkt);
+    // outlog<<pkt->id()<<","<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
     // cout<<"Packet Generator wrote pktid: "<<i<<endl;
     npulog(profile, cout << "Packet Generator wrote pktid: " << i << endl;)
   }

@@ -1,4 +1,3 @@
-import tcam;
 import sram;
 
 interface QueueRdI, QueueWrI, MemI;
@@ -9,16 +8,16 @@ CE Memory implements MemI;
 
 service MemoryManagerS;
 
-PE MemoryManager implements MemoryManagerS {
+PE MemoryManager("MemoryManager.cfg") implements MemoryManagerS {
   MemI mem_port[];
 };
 
-PE Multiplexer {
+PE Multiplexer("PacketGeneratorConfig.cfg") {
   QueueRdI mux_input[];
   QueueWrI mux_output[];
 };
 
-PE Demultiplexer {
+PE Demultiplexer("PacketGeneratorConfig.cfg") {
   QueueRdI demux_input[];
   QueueWrI demux_output[];
 };
@@ -31,7 +30,7 @@ PE OutputLogger("LoggerConfig.cfg") {
 	QueueRdI in;
 };
 
-PE Parser {
+PE Parser("PacketGeneratorConfig.cfg") {
   QueueRdI parser_in;
   QueueWrI parser_out;
 
@@ -45,24 +44,18 @@ PE Deparser {
   MemoryManagerS memory_manager;
 };
 
-PE Selector {
+PE Selector("PacketGeneratorConfig.cfg") {
   QueueRdI select_in;
   QueueWrI select_out;
 };
 
-PE TCAMMatchTable {
-  QueueRdI table_in;
-  QueueWrI table_out;
-  TcamSearchEngineS tse_port;
-};
-
-PE SRAMMatchTable {
+PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
   QueueRdI table_in;
   QueueWrI table_out;
   SramSearchEngineS sse_port;
 };
 
-PE VLIWAction {
+PE VLIWAction("PacketGeneratorConfig.cfg") {
   QueueRdI action_in;
   QueueWrI action_out;
 };
@@ -74,21 +67,16 @@ PE MatchStage {
   Queue selector_to_match, match_to_action;
 
   Selector selector;
-  TCAMMatchTable tcam_match_table;
-  TcamSearchEngine tse;
   SRAMMatchTable sram_match_table;
   SramSearchEngine sse;
   VLIWAction vliw_action;
 
   bind selector.select_in {match_stage_in};
   bind selector.select_out {selector_to_match};
-  bind tcam_match_table.table_in {selector_to_match};
-  bind tcam_match_table.table_out {match_to_action};
   bind sram_match_table.table_in {selector_to_match};
   bind sram_match_table.table_out {match_to_action};
   bind vliw_action.action_in {match_to_action};
   bind vliw_action.action_out {match_stage_out};
-  bind tcam_match_table.tse_port {tse};
   bind sram_match_table.sse_port {sse};
 };
 
@@ -272,7 +260,7 @@ PE Pipeline {
   bind deparser.memory_manager {memory_manager};
 };
 
-PE Buffer {
+PE Buffer("PacketGeneratorConfig.cfg") {
   QueueRdI buffer_in;
   QueueWrI buffer_out;
 };

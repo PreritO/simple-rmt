@@ -39,6 +39,10 @@ Multiplexer::Multiplexer(sc_module_name nm , int mux_outputPortSize,
   /*sc_spawn threads*/
   ThreadHandles.push_back(sc_spawn(sc_bind(&Multiplexer::MultiplexerThread,
         this, 0)));
+  pktTxRate = GetParameter("tx_rate").get();
+  if (pktTxRate == 0) {
+    SC_REPORT_ERROR("VLIW Constructor", "Invalid tx rate configuration parameter");
+  }
 }
 
 void Multiplexer::init() {
@@ -59,7 +63,7 @@ void Multiplexer::MultiplexerThread(std::size_t thread_id) {
           bool not_put = true;
           while (not_put) {
             if (mux_output[next_write_port]->nb_can_put()) {
-              wait(1, SC_NS);
+              wait(1/(pktTxRate*1.0), SC_NS);
               mux_output[next_write_port++]->put(obj);
               not_put = false;
             } else {
