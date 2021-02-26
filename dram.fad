@@ -1,7 +1,7 @@
 interface DramMemI;
 service DramS, DramSearchEngineS;
 
-CE DramMemory("SRAM-SSE-Config.cfg") implements DramMemI;
+CE DramMemory("DRAM-SSE-Config.cfg") implements DramMemI;
 
 PE Dram("DramConfig.cfg") implements DramS {};
 
