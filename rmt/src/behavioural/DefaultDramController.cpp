@@ -12,6 +12,12 @@ DefaultDramController::DefaultDramController(sc_module_name nm,
 
 void DefaultDramController::init() {
     init_SIM(); /* Calls the init of sub PE's and CE's */
+    try {
+        capacity = static_cast<int>(GetParameter("Capacity").get());
+    } catch (std::exception& e) {
+        SC_REPORT_ERROR("Dram Controller Constructor", "Invalid configuration parameter - Capacity");
+    }
+    actionTableSize = 0;
 }
 void DefaultDramController::DefaultDramController_PortServiceThread() {
 }
@@ -42,8 +48,7 @@ void DefaultDramController::insert(BitString prefix, DramActionBase* action) {
 
     if (pos < actionTableSize) {
         for (int i = actionTableSize - 1; i >= pos; i--) {
-            // TODO(prerit) Don't hardcode the size!!!!!
-            if (i < 1024) {
+            if (i < capacity) {
                 DramActionBase* val = read_mem(i);
                 write_mem(val, i+1);
             } else {

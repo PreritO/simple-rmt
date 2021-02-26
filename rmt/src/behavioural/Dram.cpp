@@ -236,7 +236,7 @@ BitString Dram::read(unsigned int pos) {
             << " delay = " << dram_delay << endl;
 #endif
 
-  wait(dram_delay);
+  wait(dram_delay); // this wait matters for lookups - on critical path 
   return result;
 }
 

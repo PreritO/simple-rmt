@@ -5,7 +5,7 @@ CE DramMemory("SRAM-SSE-Config.cfg") implements DramMemI;
 
 PE Dram("DramConfig.cfg") implements DramS {};
 
-PE DefaultDramController implements DramSearchEngineS{
+PE DefaultDramController("DRAM-SSE-Config.cfg") implements DramSearchEngineS{
   DramS dram_port;
   DramMemI mem;
 };
