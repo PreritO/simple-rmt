@@ -1,4 +1,5 @@
 import sram;
+import dram;
 
 interface QueueRdI, QueueWrI, MemI;
 service ControlPlaneAgentS;
@@ -49,11 +50,17 @@ PE Selector("PacketGeneratorConfig.cfg") {
   QueueWrI select_out;
 };
 
-PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
+PE DRAMMatchTable("PacketGeneratorConfig.cfg") {
   QueueRdI table_in;
   QueueWrI table_out;
-  SramSearchEngineS sse_port;
+  DramSearchEngineS dse_port;
 };
+
+//PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
+//  QueueRdI table_in;
+//  QueueWrI table_out;
+//  SramSearchEngineS sse_port;
+//};
 
 PE VLIWAction("PacketGeneratorConfig.cfg") {
   QueueRdI action_in;
@@ -64,20 +71,32 @@ PE MatchStage {
   QueueRdI match_stage_in;
   QueueWrI match_stage_out;
 
-  Queue selector_to_match, match_to_action;
+  //Queue selector_to_match, match_to_action;
 
   Selector selector;
-  SRAMMatchTable sram_match_table;
-  SramSearchEngine sse;
+  // Comment out SRAM stuff atm so lookups have to be done in remote DRAM and so I can verify correctness
+  // main idea is that each action is stored in dram match table, so all lookups have to be done off chip atm
+  //SRAMMatchTable sram_match_table;
+  //SramSearchEngine sse;
+  
   VLIWAction vliw_action;
 
+  // req  is equivalent to: selector_to_match
+  // resp is equivalent to: match_to_action
+  QueueWrI req_to_dram;
+  QueueRdI resp_from_dram;
+
   bind selector.select_in {match_stage_in};
-  bind selector.select_out {selector_to_match};
-  bind sram_match_table.table_in {selector_to_match};
-  bind sram_match_table.table_out {match_to_action};
-  bind vliw_action.action_in {match_to_action};
+  //bind selector.select_out {selector_to_match};
+  bind selector.select_out {req_to_dram};
+
+  //bind sram_match_table.table_in {selector_to_match};
+  //bind sram_match_table.table_out {match_to_action};
+
+  bind vliw_action.action_in {resp_from_dram};
   bind vliw_action.action_out {match_stage_out};
-  bind sram_match_table.sse_port {sse};
+  
+  //bind sram_match_table.sse_port {sse};
 };
 
 PE Pipeline {
@@ -95,6 +114,10 @@ PE Pipeline {
   Multiplexer post_parse_mux;
   MatchStage match_stage[32];
   Deparser deparser;
+
+  // Add to send lookup to remote dram here..
+  QueueWrI to_dram;
+  QueueRdI from_dram;
 
   MemoryManagerS memory_manager;
 
@@ -253,6 +276,73 @@ PE Pipeline {
   bind match_stage[30].match_stage_out {stage_to_stage[30]};
   bind match_stage[31].match_stage_out {from_stage32};
 
+  // Finally, bind the match stage req/resp to appropriate global Dram Queue...
+  bind match_stage[0].req_to_dram {to_dram};
+  bind match_stage[1].req_to_dram {to_dram};
+  bind match_stage[2].req_to_dram {to_dram};
+  bind match_stage[3].req_to_dram {to_dram};
+  bind match_stage[4].req_to_dram {to_dram};
+  bind match_stage[5].req_to_dram {to_dram};
+  bind match_stage[6].req_to_dram {to_dram};
+  bind match_stage[7].req_to_dram {to_dram};
+  bind match_stage[8].req_to_dram {to_dram};
+  bind match_stage[9].req_to_dram {to_dram};
+  bind match_stage[10].req_to_dram {to_dram};
+  bind match_stage[11].req_to_dram {to_dram};
+  bind match_stage[12].req_to_dram {to_dram};
+  bind match_stage[13].req_to_dram {to_dram};
+  bind match_stage[14].req_to_dram {to_dram};
+  bind match_stage[15].req_to_dram {to_dram};
+  bind match_stage[16].req_to_dram {to_dram};
+  bind match_stage[17].req_to_dram {to_dram};
+  bind match_stage[18].req_to_dram {to_dram};
+  bind match_stage[19].req_to_dram {to_dram};
+  bind match_stage[20].req_to_dram {to_dram};
+  bind match_stage[21].req_to_dram {to_dram};
+  bind match_stage[22].req_to_dram {to_dram};
+  bind match_stage[23].req_to_dram {to_dram};
+  bind match_stage[24].req_to_dram {to_dram};
+  bind match_stage[25].req_to_dram {to_dram};
+  bind match_stage[26].req_to_dram {to_dram};
+  bind match_stage[27].req_to_dram {to_dram};
+  bind match_stage[28].req_to_dram {to_dram};
+  bind match_stage[29].req_to_dram {to_dram};
+  bind match_stage[30].req_to_dram {to_dram};
+  bind match_stage[31].req_to_dram {to_dram};
+
+  bind match_stage[0].resp_from_dram {from_dram};
+  bind match_stage[1].resp_from_dram {from_dram};
+  bind match_stage[2].resp_from_dram {from_dram};
+  bind match_stage[3].resp_from_dram {from_dram};
+  bind match_stage[4].resp_from_dram {from_dram};
+  bind match_stage[5].resp_from_dram {from_dram};
+  bind match_stage[6].resp_from_dram {from_dram};
+  bind match_stage[7].resp_from_dram {from_dram};
+  bind match_stage[8].resp_from_dram {from_dram};
+  bind match_stage[9].resp_from_dram {from_dram};
+  bind match_stage[10].resp_from_dram {from_dram};
+  bind match_stage[11].resp_from_dram {from_dram};
+  bind match_stage[12].resp_from_dram {from_dram};
+  bind match_stage[13].resp_from_dram {from_dram};
+  bind match_stage[14].resp_from_dram {from_dram};
+  bind match_stage[15].resp_from_dram {from_dram};
+  bind match_stage[16].resp_from_dram {from_dram};
+  bind match_stage[17].resp_from_dram {from_dram};
+  bind match_stage[18].resp_from_dram {from_dram};
+  bind match_stage[19].resp_from_dram {from_dram};
+  bind match_stage[20].resp_from_dram {from_dram};
+  bind match_stage[21].resp_from_dram {from_dram};
+  bind match_stage[22].resp_from_dram {from_dram};
+  bind match_stage[23].resp_from_dram {from_dram};
+  bind match_stage[24].resp_from_dram {from_dram};
+  bind match_stage[25].resp_from_dram {from_dram};
+  bind match_stage[26].resp_from_dram {from_dram};
+  bind match_stage[27].resp_from_dram {from_dram};
+  bind match_stage[28].resp_from_dram {from_dram};
+  bind match_stage[29].resp_from_dram {from_dram};
+  bind match_stage[30].resp_from_dram {from_dram};
+  bind match_stage[31].resp_from_dram {from_dram};
+
   bind deparser.deparser_in {from_stage32};
 
   bind deparser.deparser_out {pipe_out};
@@ -296,8 +386,18 @@ PE RMT implements ControlPlaneAgentS {
   ControlPlaneAgent cp_agent;
   IngressMultiplexer ingress_mux;
   EgressDemultiplexer egress_demux;
+
+  // This mem module is to store pkts 
   MemoryManager memory_manager;
   Memory mem;
+
+  //   adding dram here is more accurate to model remote dram server mem 
+  //   (for mimicing TEA or even accessing DRAM over PCIe bus)
+  //   todo: add bandwidth parameter for dram - PO 
+
+  DRAMMatchTable dram_match_table;
+  DramSearchEngine dse;
+  Queue local_pipe_to_dram, local_pipe_from_dram;
 
   bind ingress_mux.packet_in {rmt_in};
   bind ingress_mux.from_agent {agent_to_ingress};
@@ -318,8 +418,25 @@ PE RMT implements ControlPlaneAgentS {
   bind egress_pipeline.pipe_out {from_egress};
   bind egress_pipeline.memory_manager {memory_manager};
 
+  // Instead of writing table entries from cp agent to match stages in ingress/egress, write them to dram
+  
   bind cp_agent.to_ingress {agent_to_ingress};
   bind cp_agent.from_egress {egress_to_agent};
+
+  //bind cp_agent.to_ingress {agent_to_dram};
+  //bind cp_agent.from_egress {agent_from_dram}; 
+
+  // Also add connections from ingress and egress to dram here..
+  bind ingress_pipeline.to_dram {local_pipe_to_dram};
+  bind ingress_pipeline.from_dram {local_pipe_from_dram};
+  bind egress_pipeline.to_dram {local_pipe_to_dram};
+  bind egress_pipeline.from_dram {local_pipe_from_dram};
+
+  // bind the table_in for DRAM here..
+  bind dram_match_table.table_in {local_pipe_to_dram};
+  bind dram_match_table.table_out {local_pipe_from_dram};
+  bind dram_match_table.dse_port {dse};
+
 
   bind memory_manager.mem_port[0] {mem};
 };

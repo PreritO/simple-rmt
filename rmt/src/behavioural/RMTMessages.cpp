@@ -32,7 +32,7 @@
 #include <string>
 #include "pfpsim/core/PFPObject.h"
 #include "ControlPlaneAgent.h"
-#include "SRAMMatchTable.h"
+#include "DRAMMatchTable.h"
 
 const std::string module_name_ = "RMTMessage";
 
@@ -72,9 +72,10 @@ void AddTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR INSERTING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
+    // Update this to add table entry into DRAM Match Table
+    DRAMMatchTable& match_table = static_cast<DRAMMatchTable&>(module);
 
-    npulog(profile, std::cout << "Sending TableEntryAdded message: "
+    npulog(profile, std::cout << "Sending TableEntryAdded message to DRAM: "
           << table_name << " --> " << match_key_str << std::endl;)
     std::shared_ptr<TableEntryAdded> msg = std::make_shared<TableEntryAdded>();
     msg->table_name = table_name;
@@ -110,7 +111,7 @@ void ModifyTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR MODIFYING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
+    DRAMMatchTable& match_table = static_cast<DRAMMatchTable&>(module);
 
     npulog(profile, std::cout << "Sending TableEntryModifed message: "
           << table_name << "Handle: " << handle << std::endl;)
@@ -147,7 +148,7 @@ void DeleteTableEntry::execute(pfp::core::PFPObject& module) {
     std::cout << " ERROR MODIFYING WITH CODE: "
           << static_cast<int>(rc) << std::endl;
   } else {
-    SRAMMatchTable& match_table = static_cast<SRAMMatchTable&>(module);
+    DRAMMatchTable& match_table = static_cast<DRAMMatchTable&>(module);
 
     npulog(profile, std::cout << "Sending TableEntryDeleted message: "
           << table_name << "Handle: " << handle << std::endl;)
