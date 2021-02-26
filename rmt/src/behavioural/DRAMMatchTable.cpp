@@ -44,12 +44,12 @@ void DRAMMatchTable::DRAMMatchTableThread(std::size_t thread_id) {
               << " performing lookup on packet " << phv->id() << " ("
               << stage_name << ")"<< std::endl;)
       
-      bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
+        bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
                   get_p4_objects()->get_control_node(stage_name);
       
-      const bm::ControlFlowNode* next_control_flow_node =
+        const bm::ControlFlowNode* next_control_flow_node =
             (*control_flow_node) (phv->packet().get());
-      if (next_control_flow_node != 0) {
+        if (next_control_flow_node != 0) {
             std::string next_stage_name;
             const bm::MatchActionTable* match_table =
                   dynamic_cast<const bm::MatchActionTable*>
@@ -66,16 +66,16 @@ void DRAMMatchTable::DRAMMatchTableThread(std::size_t thread_id) {
       //             << " setting next stage for packet " << phv->id() << " to "
       //             << next_stage_name << endl;)
             phv->set_next_table(next_stage_name);
-      } else {
+        } else {
             npulog(profile, cout << module_stack
                   << " - no next stage for packet " << phv->id() << endl;)
             //phv->set_next_table("");
       }
-      wait(1/(pktTxRate*1.0), SC_NS);
-      // Write packet
-      npulog(profile, std::cout << module_stack << " wrote packet "
+        wait(1/(pktTxRate*1.0), SC_NS);
+        // Write packet
+        npulog(profile, std::cout << module_stack << " wrote packet "
             << phv->id() << std::endl;)
-      table_out->put(received_pkt);
+        table_out->put(received_pkt);
       } else {
         std::shared_ptr<RMTMessage> msg
               = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
