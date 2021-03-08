@@ -53,5 +53,15 @@ if __name__=="__main__":
         avgfh.write(", ")
         avgfh.write(str(avg_thrp))
         avgfh.write('\n')
-    print "Latency:    ", avg_latency
+    print "End-to-End Latency:    ", avg_latency
     print "Throughput: ", avg_thrp
+
+    dramTrace = list(csv.reader(open("DRAMLookup.csv"), delimiter=","))
+    avg_dram_latency = 0
+    total_pkt = 0
+    for line in dramTrace:
+        avg_dram_latency += float(line[2])-float(line[1])
+        total_pkt+=1
+
+    avg_dram = avg_dram_latency/total_pkt
+    print "Average Lookup Latency: ", avg_dram
