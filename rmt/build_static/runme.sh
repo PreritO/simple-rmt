@@ -15,7 +15,7 @@ if [[ $debug_level == "debug" ]] ; then
     elif [[ $application == "nat" ]]; then
         pfpdb rmt-sim --args "-Xp4 ../../../apps/nat/nat.json -Xtpop ../../../apps/nat/nat_table_short.txt -v "$vlvl" -Xin ../../../apps/pcaps/10kflows.pcap -Xvalidation-out output.pcap" -v
     elif [[ $application == "nat-debug" ]]; then
-        pfpdb rmt-sim --args "-Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -v "$vlvl" -Xin ../../../apps/pcaps/1kflows.pcap -Xvalidation-out output.pcap" -v
+        pfpdb rmt-sim --args "-Xp4 ../../../apps/nat-debug/nat.json -Xtpop ../../../apps/nat-debug/nat_table_debug.txt -v "$vlvl" -Xin ../../../apps/pcaps/200flows.pcap -Xvalidation-out output.pcap" -v
     else
         echo ""$application" not yet implemented.."
         exit

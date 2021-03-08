@@ -215,7 +215,7 @@ void Dram::removeAndShift(unsigned int pos) {
 
 /// ========================================
 //
-//  Read
+//  Read - not on critical path for lookups, referrernced when dramcontroller does insertions, manages DS
 //
 /// ========================================
 
@@ -236,7 +236,7 @@ BitString Dram::read(unsigned int pos) {
             << " delay = " << dram_delay << endl;
 #endif
 
-  wait(dram_delay); // this wait matters for lookups - on critical path 
+  wait(dram_delay); 
   return result;
 }
 

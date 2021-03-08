@@ -32,7 +32,7 @@ public DramMemorySIM {
 
   virtual DramActionBase* read(unsigned int addr) {
     if (addr < SIZE) {
-      wait(RD_LATENCY); //influences overall throughput by causing a backlog of packets if the packet generator rate is << than Latency
+      wait(RD_LATENCY); // this wait matters for lookups - on critical path 
       return mem[addr];
     } else {
       SC_REPORT_ERROR("Dram Memory Read", "Out of address range!");
