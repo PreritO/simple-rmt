@@ -1,28 +1,28 @@
-#include "DefaultDramController.h"
+#include "DefaultNVMController.h"
 #define debug_tlm_mem_transaction true
 #include <bitset>
 #include <algorithm>
 #include <string>
 
-DefaultDramController::DefaultDramController(sc_module_name nm,
+DefaultNVMController::DefaultNVMController(sc_module_name nm,
       pfp::core::PFPObject* parent, std::string configfile)
-      :DefaultDramControllerSIM(nm, parent, configfile) {
+      :DefaultNVMControllerSIM(nm, parent, configfile) {
   /*sc_spawn threads*/
 }
 
-void DefaultDramController::init() {
+void DefaultNVMController::init() {
     init_SIM(); /* Calls the init of sub PE's and CE's */
     try {
         capacity = static_cast<int>(GetParameter("Capacity").get());
     } catch (std::exception& e) {
-        SC_REPORT_ERROR("Dram Controller Constructor", "Invalid configuration parameter - Capacity");
+        SC_REPORT_ERROR("NVM Controller Constructor", "Invalid configuration parameter - Capacity");
     }
     actionTableSize = 0;
 }
-void DefaultDramController::DefaultDramController_PortServiceThread() {
+void DefaultNVMController::DefaultNVMController_PortServiceThread() {
 }
 
-void DefaultDramController::DefaultDramControllerThread(std::size_t thread_id) {
+void DefaultNVMController::DefaultNVMControllerThread(std::size_t thread_id) {
 }
 
 /// ================================
@@ -31,13 +31,13 @@ void DefaultDramController::DefaultDramControllerThread(std::size_t thread_id) {
 //
 /// ================================
 
-void DefaultDramController::insert(BitString prefix, DramActionBase* action) {
+void DefaultNVMController::insert(BitString prefix, NVMActionBase* action) {
     int pos = 0;
 
     for (; pos < actionTableSize; pos++) {
-        BitString temp = dram_port->read(pos);
+        BitString temp = nvm_port->read(pos);
         if (temp == prefix) {
-            dram_port->insert(prefix, pos);
+            nvm_port->insert(prefix, pos);
             write_mem(action, pos);
             return;
         }
@@ -49,7 +49,7 @@ void DefaultDramController::insert(BitString prefix, DramActionBase* action) {
     if (pos < actionTableSize) {
         for (int i = actionTableSize - 1; i >= pos; i--) {
             if (i < capacity) {
-                DramActionBase* val = read_mem(i);
+                NVMActionBase* val = read_mem(i);
                 write_mem(val, i+1);
             } else {
               cout << "The Address was invalid in insert and shift" << endl;
@@ -61,12 +61,12 @@ void DefaultDramController::insert(BitString prefix, DramActionBase* action) {
     }
 
     write_mem(action, pos);
-    dram_port->insertAndShift(prefix, pos);
+    nvm_port->insertAndShift(prefix, pos);
 }
 
 
-void DefaultDramController::insert(
-      RoutingTableEntry<DramActionBase*> *routingTable,
+void DefaultNVMController::insert(
+      RoutingTableEntry<NVMActionBase*> *routingTable,
       unsigned int routingTableSize) {
     if (actionTableSize == 0) {
         reconstruct(routingTable, routingTableSize);
@@ -83,18 +83,18 @@ void DefaultDramController::insert(
 //
 /// ================================
 
-void DefaultDramController::reconstruct(
-      RoutingTableEntry<DramActionBase*> *routingTable,
+void DefaultNVMController::reconstruct(
+      RoutingTableEntry<NVMActionBase*> *routingTable,
       unsigned int routingTableSize) {
     std::sort(routingTable, routingTable + routingTableSize, sortEntries);
 
     for (int i = 0; i < routingTableSize; i++) {
-        dram_port->insert(routingTable[i].getData(), i);
+        nvm_port->insert(routingTable[i].getData(), i);
         write_mem(routingTable[i].getAction(), i);
     }
 
     for (int j = routingTableSize; j < actionTableSize; j++) {
-        dram_port->remove(j);
+        nvm_port->remove(j);
     }
 
     actionTableSize = routingTableSize;
@@ -106,13 +106,13 @@ void DefaultDramController::reconstruct(
 //
 /// ================================
 
-void DefaultDramController::remove(BitString prefix) {
-    int pos = dram_port->search(prefix);
+void DefaultNVMController::remove(BitString prefix) {
+    int pos = nvm_port->search(prefix);
     if (pos != -1) {
-        dram_port->removeAndShift(pos);
+        nvm_port->removeAndShift(pos);
 
         for (int i = pos; i < actionTableSize - 1; i++) {
-            DramActionBase* val = read_mem(i + 1);
+            NVMActionBase* val = read_mem(i + 1);
             write_mem(val, i);
         }
 
@@ -126,8 +126,8 @@ void DefaultDramController::remove(BitString prefix) {
 //
 /// ================================
 
-DramActionBase* DefaultDramController::exactSearch(BitString prefix) {
-  int pos = dram_port->exactSearch(prefix);
+NVMActionBase* DefaultNVMController::exactSearch(BitString prefix) {
+  int pos = nvm_port->exactSearch(prefix);
   if (pos == -1) {
     return defaultAction;
   } else {
@@ -135,12 +135,12 @@ DramActionBase* DefaultDramController::exactSearch(BitString prefix) {
   }
 }
 
-DramActionBase* DefaultDramController::search(BitString prefix) {
-    int pos = dram_port->search(prefix);
+NVMActionBase* DefaultNVMController::search(BitString prefix) {
+    int pos = nvm_port->search(prefix);
     if (pos == -1) {
       return defaultAction;
     } else {
-      DramActionBase* action = read_mem(pos);
+      NVMActionBase* action = read_mem(pos);
       return action;
     }
 }
@@ -151,9 +151,9 @@ DramActionBase* DefaultDramController::search(BitString prefix) {
 //
 /// ================================
 
-bool DefaultDramController::sortEntries(
-      RoutingTableEntry<DramActionBase*> first,
-      RoutingTableEntry<DramActionBase*> second) {
+bool DefaultNVMController::sortEntries(
+      RoutingTableEntry<NVMActionBase*> first,
+      RoutingTableEntry<NVMActionBase*> second) {
     if (first.getLength() > second.getLength()) {
         return true;
     } else {
@@ -161,7 +161,7 @@ bool DefaultDramController::sortEntries(
     }
 }
 
-void DefaultDramController::setDefaultAction(DramActionBase* action) {
+void DefaultNVMController::setDefaultAction(NVMActionBase* action) {
   defaultAction = action;
 }
 
@@ -170,12 +170,12 @@ void DefaultDramController::setDefaultAction(DramActionBase* action) {
  *
  */
 
-void DefaultDramController::write_mem(DramActionBase* data_to_allocate,
+void DefaultNVMController::write_mem(NVMActionBase* data_to_allocate,
       int addr) {
   mem->write(data_to_allocate, addr);
 }
 
 
-DramActionBase* DefaultDramController::read_mem(int addr) {
+NVMActionBase* DefaultNVMController::read_mem(int addr) {
   return mem->read(addr);
 }

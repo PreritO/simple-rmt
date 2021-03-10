@@ -1,19 +1,19 @@
-#include "DRAMMatchTable.h"
+#include "NVMMatchTable.h"
 #include <string>
 #include "MatchStage.h"
 #include "PacketHeaderVector.h"
 #include "RMTMessages.h"
 
-DRAMMatchTable::DRAMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
-      std::string configfile):DRAMMatchTableSIM(nm, parent, configfile), outlog(OUTPUTDIR+"DRAMLookup.csv") {
+NVMMatchTable::NVMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
+      std::string configfile):NVMMatchTableSIM(nm, parent, configfile), outlog(OUTPUTDIR+"NVMLookup.csv") {
   /*sc_spawn threads*/
 
   //original scenario here, no asynch processing...
-  ThreadHandles.push_back(sc_spawn(sc_bind(&DRAMMatchTable::DRAMMatchTableOriginalThread,
+  ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchTableOriginalThread,
         this, 0)));
-  ThreadHandles.push_back(sc_spawn(sc_bind(&DRAMMatchTable::DRAMMatchAsyncLookupThread,
+  ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchAsyncLookupThread,
         this, 1)));
-  ThreadHandles.push_back(sc_spawn(sc_bind(&DRAMMatchTable::DRAMMatchAsyncResponseThread,
+  ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchAsyncResponseThread,
         this, 2)));
 
   pktTxRate = GetParameter("tx_rate").get();
@@ -22,7 +22,7 @@ DRAMMatchTable::DRAMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
   }
 }
 
-void DRAMMatchTable::init() {
+void NVMMatchTable::init() {
     init_SIM(); /* Calls the init of sub PE's and CE's */
     global_table = "nat";
 
@@ -31,11 +31,11 @@ void DRAMMatchTable::init() {
 // use this thread to handle all incoming pkts and adding them to a 
 // local fifo queue so we don't delay adding the packets from the selector in the first place while lookups
 // are being performed
-void DRAMMatchTable::DRAMMatchTable_PortServiceThread() {
+void NVMMatchTable::NVMMatchTable_PortServiceThread() {
 
 }
 
-void DRAMMatchTable::DRAMMatchTableOriginalThread(std::size_t thread_id) {
+void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
       std::string module_stack = parent_->GetParent()->module_name() + "->"
         + parent_->module_name() + "->" + module_name();
         
@@ -81,7 +81,7 @@ void DRAMMatchTable::DRAMMatchTableOriginalThread(std::size_t thread_id) {
       }
  }
 
-void DRAMMatchTable::DRAMMatchAsyncLookupThread(std::size_t thread_id) {
+void NVMMatchTable::NVMMatchAsyncLookupThread(std::size_t thread_id) {
       while(1) {
             // this wait here is being grouped when packets in above thread
             // are constantly notifying, so we need to clear the queue after
@@ -110,7 +110,7 @@ void DRAMMatchTable::DRAMMatchAsyncLookupThread(std::size_t thread_id) {
       }
 }
 
-void DRAMMatchTable::DRAMMatchAsyncResponseThread(std::size_t thread_id) { 
+void NVMMatchTable::NVMMatchAsyncResponseThread(std::size_t thread_id) { 
       while(1) {
             /// again, this wait here is being called once for multiple
             // packets, and so deal with that by checking how ever many
@@ -120,7 +120,7 @@ void DRAMMatchTable::DRAMMatchAsyncResponseThread(std::size_t thread_id) {
             async_response_queue.size(qsize_resp);
             while(qsize_resp > 0) {
                   auto phv = async_response_queue.pop();
-                  npulog(profile, std::cout << "DRAM wrote packet "
+                  npulog(profile, std::cout << "NVM wrote packet "
                         << phv->id() << std::endl;)
             }
       }

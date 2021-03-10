@@ -1,0 +1,23 @@
+interface NVMMemI;
+service NvmS, NVMSearchEngineS;
+
+CE NVMMemory("NVM-SSE-Config.cfg") implements NVMMemI;
+
+PE Nvm("NvmConfig.cfg") implements NvmS {};
+
+PE DefaultNVMController("NVM-SSE-Config.cfg") implements NVMSearchEngineS{
+  NvmS nvm_port;
+  NVMMemI mem;
+};
+
+PE NVMSearchEngine implements NVMSearchEngineS {
+  Nvm main_nvm; // this is the "section" of nvm that deals with extending the lookup table (section 1)
+  // unsure if this is the corrrect place to insert these sections... 
+  // Nvm persistent_write; // this is the "section" of nvm that deals with persisting packets/arbitary data to NVM (section 2)
+  // Nvm nvm_log;          // This is the "section" of nvm that is wrriten to when daa is successfully persisted (section 3)
+  DefaultNVMController nvm_controller; 
+  NVMMemory TLMMemory;
+
+  bind nvm_controller.nvm_port {main_nvm};
+  bind nvm_controller.mem {TLMMemory};
+};

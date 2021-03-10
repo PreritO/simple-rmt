@@ -1,6 +1,6 @@
 
-#ifndef BEHAVIOURAL_DRAMS_H_
-#define BEHAVIOURAL_DRAMS_H_
+#ifndef BEHAVIOURAL_NVMS_H_
+#define BEHAVIOURAL_NVMS_H_
 
 #include "systemc.h"
 #include "tlm.h"
@@ -8,9 +8,9 @@
 
 using tlm::tlm_tag;
 
-class DramEntry {
+class NvmEntry {
  public:
-  explicit DramEntry(BitString d = "", bool v = true);
+  explicit NvmEntry(BitString d = "", bool v = true);
 
   // Getters
   BitString getData() const;
@@ -25,7 +25,7 @@ class DramEntry {
   bool valid;
 };
 
-class DramS : public sc_interface {
+class NvmS : public sc_interface {
  public:
   /* User Logic - Virtual Functions for interface go here */
   virtual void insert(BitString prefix, unsigned int pos) = 0;
@@ -40,4 +40,4 @@ class DramS : public sc_interface {
   virtual BitString read(unsigned int pos) = 0;
 };
 
-#endif  // BEHAVIOURAL_DRAMS_H_
+#endif  // BEHAVIOURAL_NVMS_H_

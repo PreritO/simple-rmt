@@ -1,18 +1,18 @@
-#ifndef BEHAVIOURAL_DRAM_H_
-#define BEHAVIOURAL_DRAM_H_
+#ifndef BEHAVIOURAL_NVM_H_
+#define BEHAVIOURAL_NVM_H_
 #include <list>
 #include <vector>
 #include <string>
-#include "structural/DramSIM.h"
+#include "structural/NvmSIM.h"
 
-class Dram: public DramSIM {
+class Nvm: public NvmSIM {
  public:
-  SC_HAS_PROCESS(Dram);
+  SC_HAS_PROCESS(Nvm);
   /*Constructor*/
-  Dram(sc_module_name nm, pfp::core::PFPObject* parent = 0,
+  Nvm(sc_module_name nm, pfp::core::PFPObject* parent = 0,
         std::string configfile = "");
   /*Destructor*/
-  virtual ~Dram() = default;
+  virtual ~Nvm() = default;
 
  public:
   void init();
@@ -28,24 +28,24 @@ class Dram: public DramSIM {
 
   virtual BitString read(unsigned int pos);
 
-  // Get Size of Dram in Bits
-  int getDramSize();
+  // Get Size of Nvm in Bits
+  int getNvmSize();
 
-  // GET Dram Delay;
-  sc_time getDramDelay();
+  // GET Nvm Delay;
+  sc_time getNvmDelay();
 
  private:
-  void Dram_PortServiceThread();
-  void DramThread(std::size_t thread_id);
+  void Nvm_PortServiceThread();
+  void NvmThread(std::size_t thread_id);
   std::vector<sc_process_handle> ThreadHandles;
 
-  std::list<DramEntry> dram_entries;  // Dram entries
-  unsigned int dram_height;  // Number of possible entries in dram
-  unsigned int dram_width;  // Number of possible bits per entry
-  sc_time dram_delay;
+  std::list<NvmEntry> nvm_entries;  // Nvm entries
+  unsigned int nvm_height;  // Number of possible entries in nvm
+  unsigned int nvm_width;  // Number of possible bits per entry
+  sc_time nvm_delay;
 
   // Convert Decimal number to a binary string
   BitString DecimalToBinaryString(int64 iDecimal, const int iNumOfBits) const;
 };
 
-#endif  // BEHAVIOURAL_DRAM_H_
+#endif  // BEHAVIOURAL_NVM_H_
