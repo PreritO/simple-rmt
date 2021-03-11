@@ -56,7 +56,7 @@ if __name__=="__main__":
     print "End-to-End Latency:    ", avg_latency
     print "Throughput: ", avg_thrp
 
-    dramTrace = list(csv.reader(open("DRAMLookup.csv"), delimiter=","))
+    dramTrace = list(csv.reader(open("NVMLookup.csv"), delimiter=","))
     avg_dram_latency = 0
     total_pkt = 0
     for line in dramTrace:
