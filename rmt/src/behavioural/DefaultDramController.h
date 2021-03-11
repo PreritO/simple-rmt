@@ -49,7 +49,9 @@ class DefaultDramController: public DefaultDramControllerSIM {
   std::vector<sc_process_handle> ThreadHandles;
 
   int actionTableSize;
-  int capacity;
+  long long capacity;
   DramActionBase* defaultAction;
+
+  int actionTableSizeBytes;
 };
 #endif  // BEHAVIOURAL_DEFAULTDramCONTROLLER_H_

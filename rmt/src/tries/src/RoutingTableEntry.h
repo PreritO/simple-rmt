@@ -84,7 +84,7 @@ private:
 /// ==================================
 
 template <class T>
-RoutingTableEntry<T>::RoutingTableEntry(BitString iData, int iLength, T iAction, int iActionSize) : mData(iData), mLength(iLength), mAction(iAction), mActionSize(iActionSize) {
+RoutingTableEntry<T>::RoutingTableEntry(BitString iData, int iLength, T iAction, int iActionSize) : mData(iData), mLength(iData.size()), mAction(iAction), mActionSize(iActionSize) {
 
 }
 

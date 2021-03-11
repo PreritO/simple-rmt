@@ -13,11 +13,12 @@ DefaultDramController::DefaultDramController(sc_module_name nm,
 void DefaultDramController::init() {
     init_SIM(); /* Calls the init of sub PE's and CE's */
     try {
-        capacity = static_cast<int>(GetParameter("Capacity").get());
+        capacity = static_cast<long long>(GetParameter("Capacity").get()); // capacity (in config file) refers to number of max entries, not bytes 
     } catch (std::exception& e) {
         SC_REPORT_ERROR("Dram Controller Constructor", "Invalid configuration parameter - Capacity");
     }
     actionTableSize = 0;
+    actionTableSizeBytes = 0;
 }
 void DefaultDramController::DefaultDramController_PortServiceThread() {
 }
@@ -55,13 +56,19 @@ void DefaultDramController::insert(BitString prefix, DramActionBase* action) {
               cout << "The Address was invalid in insert and shift" << endl;
             }
         }
-        actionTableSize++;
+        actionTableSize++; // refers to the number of entries in the table, not the bytes
     } else {
         actionTableSize += pos - actionTableSize + 1;
     }
 
+    //npulog(profile, cout << "Prefix Size: " << prefix.size() << ", pos: " << pos << endl;) 
+
     write_mem(action, pos);
     dram_port->insertAndShift(prefix, pos);
+
+    // npulog(normal, cout << "Action Table Size: " << actionTableSize << endl;) 
+    // npulog(profile, cout << "Action Table Size: " << actionTableSize << endl;) 
+
 }
 
 
@@ -73,6 +80,9 @@ void DefaultDramController::insert(
     } else {
         for (int i = 0; i < routingTableSize; i++) {
             insert(routingTable[i].getData(), routingTable[i].getAction());
+            npulog(profile, cout << "INSERT ROUTING TABLE ENTRY - Data " << routingTable[i].getData() << ", length: " << routingTable[i].getLength()/8  << "Bytes, Action: " << routingTable[i].getAction() << ", Action size: " << routingTable[i].getActionSize() << "Bytes" << endl;) 
+            actionTableSizeBytes += ((routingTable[i].getLength()/8) + routingTable[i].getActionSize());
+            npulog(profile, cout << "Table Size: " << actionTableSizeBytes << " Bytes" << endl;) 
         }
     }
 }

@@ -70,6 +70,7 @@ void DramTrieWrapper<T>::update(RoutingTableEntry<T> *iRoutingTable,
       wTable[i].setActionSize(iRoutingTable[i].getActionSize());
     }
     (*dse_port)->insert(wTable, iRoutingTableSize);
+    //npulog(profile, cout << "ADD ACTION ENTRY -  Size: " << actionSize << endl;) 
     delete [] wTable;
   } else if (iAction == Trie<T>::Action::Remove) {
     for (int i = 0; i < iRoutingTableSize; i++) {
