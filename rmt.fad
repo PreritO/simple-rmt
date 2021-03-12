@@ -56,49 +56,325 @@ PE NVMMatchTable("PacketGeneratorConfig.cfg") {
   NVMSearchEngineS nse_port;
 };
 
-//PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
-//  QueueRdI table_in;
-//  QueueWrI table_out;
-//  SramSearchEngineS sse_port;
-//};
+PE SRAMMatchTable("PacketGeneratorConfig.cfg") {
+  QueueRdI table_in;
+  QueueWrI table_out;
+  SramSearchEngineS sse_port;
+};
 
 PE VLIWAction("PacketGeneratorConfig.cfg") {
   QueueRdI action_in;
   QueueWrI action_out;
 };
 
-PE MatchStage {
+// again, each match stage is analagous to exisiting match stages, except that 
+// that we have connectors to NVM now (not a crossbar to begin with, just directly to NVM)
+PE PersistentMatchStage {
   QueueRdI match_stage_in;
   QueueWrI match_stage_out;
 
-  //Queue selector_to_match, match_to_action;
-
+  Queue selector_to_match, match_to_action;
   Selector selector;
   
-  // Comment out SRAM stuff atm so lookups have to be done in NVM 
-  // main idea is that each action is stored in NVM match table, so all lookups have to be done there first (caching at SRAM will come later...)
-  
-  //SRAMMatchTable sram_match_table;
-  //SramSearchEngine sse;
-  
-  VLIWAction vliw_action;
+  // each stage has its own SRAM (which will start off as empty and be used to flush writes to NVM - TODO task)
+  SRAMMatchTable sram_match_table;
+  SramSearchEngine sse;
 
   // req  is equivalent to: selector_to_match
   // resp is equivalent to: match_to_action
   QueueWrI req_to_nvm;
   QueueRdI resp_from_nvm;
 
-  bind selector.select_in {match_stage_in};
-  //bind selector.select_out {selector_to_match};
-  bind selector.select_out {req_to_nvm};
+  VLIWAction vliw_action;
 
-  //bind sram_match_table.table_in {selector_to_match};
-  //bind sram_match_table.table_out {match_to_action};
+  bind selector.select_in {match_stage_in};
+  bind selector.select_out {req_to_nvm};
 
   bind vliw_action.action_in {resp_from_nvm};
   bind vliw_action.action_out {match_stage_out};
+
+};
+
+PE MatchStage {
+  QueueRdI match_stage_in;
+  QueueWrI match_stage_out;
+
+  Queue selector_to_match, match_to_action;
+
+  Selector selector;
   
-  //bind sram_match_table.sse_port {sse};
+  // each stage has its own SRAM (which will start off as empty)
+  SRAMMatchTable sram_match_table;
+  SramSearchEngine sse;
+  
+  VLIWAction vliw_action;
+
+  bind selector.select_in {match_stage_in};
+  bind selector.select_out {selector_to_match};
+
+  bind sram_match_table.table_in {selector_to_match};
+  bind sram_match_table.table_out {match_to_action};
+
+  bind vliw_action.action_in {match_to_action};
+  bind vliw_action.action_out {match_stage_out};
+  
+  bind sram_match_table.sse_port {sse};
+};
+
+// This pipeline has SRAM buffers, but is the only pipeline to interface with NVM memory
+PE PersistentPipeline {
+  QueueRdI pipe_in;
+  QueueWrI pipe_out;
+
+  Queue to_stage1;
+  Queue from_stage32;
+  Queue stage_to_stage[31]; // 32 stages per pipeline
+  Queue demux_to_parser[16]; // 16 ports 
+  Queue parser_to_mux[16]; //16 ports
+
+  // this refers to the 16 ports incoming to the parser for each pipeline (i.e. 64 port switch meaning 16 ports/pipeline * 4 pipelines)
+  Parser parser[16];
+  Demultiplexer pre_parse_demux;
+  Multiplexer post_parse_mux;
+  PersistentMatchStage match_stage[32];
+  Deparser deparser;
+
+  // Add to send lookup to NVM device here..
+  QueueWrI to_nvm;
+  QueueRdI from_nvm;
+
+  MemoryManagerS memory_manager;
+
+  // This pipeline is equivalent to exisiting pipelines except that the only difference is that it
+  // also connects with NVM
+
+  bind pre_parse_demux.demux_input[0] {pipe_in};
+
+  bind pre_parse_demux.demux_output[0] {demux_to_parser[0]};
+  bind pre_parse_demux.demux_output[1] {demux_to_parser[1]};
+  bind pre_parse_demux.demux_output[2] {demux_to_parser[2]};
+  bind pre_parse_demux.demux_output[3] {demux_to_parser[3]};
+  bind pre_parse_demux.demux_output[4] {demux_to_parser[4]};
+  bind pre_parse_demux.demux_output[5] {demux_to_parser[5]};
+  bind pre_parse_demux.demux_output[6] {demux_to_parser[6]};
+  bind pre_parse_demux.demux_output[7] {demux_to_parser[7]};
+  bind pre_parse_demux.demux_output[8] {demux_to_parser[8]};
+  bind pre_parse_demux.demux_output[9] {demux_to_parser[9]};
+  bind pre_parse_demux.demux_output[10] {demux_to_parser[10]};
+  bind pre_parse_demux.demux_output[11] {demux_to_parser[11]};
+  bind pre_parse_demux.demux_output[12] {demux_to_parser[12]};
+  bind pre_parse_demux.demux_output[13] {demux_to_parser[13]};
+  bind pre_parse_demux.demux_output[14] {demux_to_parser[14]};
+  bind pre_parse_demux.demux_output[15] {demux_to_parser[15]};
+
+  bind parser[0].parser_in {demux_to_parser[0]};
+  bind parser[1].parser_in {demux_to_parser[1]};
+  bind parser[2].parser_in {demux_to_parser[2]};
+  bind parser[3].parser_in {demux_to_parser[3]};
+  bind parser[4].parser_in {demux_to_parser[4]};
+  bind parser[5].parser_in {demux_to_parser[5]};
+  bind parser[6].parser_in {demux_to_parser[6]};
+  bind parser[7].parser_in {demux_to_parser[7]};
+  bind parser[8].parser_in {demux_to_parser[8]};
+  bind parser[9].parser_in {demux_to_parser[9]};
+  bind parser[10].parser_in {demux_to_parser[10]};
+  bind parser[11].parser_in {demux_to_parser[11]};
+  bind parser[12].parser_in {demux_to_parser[12]};
+  bind parser[13].parser_in {demux_to_parser[13]};
+  bind parser[14].parser_in {demux_to_parser[14]};
+  bind parser[15].parser_in {demux_to_parser[15]};
+
+  bind parser[0].parser_out {parser_to_mux[0]};
+  bind parser[1].parser_out {parser_to_mux[1]};
+  bind parser[2].parser_out {parser_to_mux[2]};
+  bind parser[3].parser_out {parser_to_mux[3]};
+  bind parser[4].parser_out {parser_to_mux[4]};
+  bind parser[5].parser_out {parser_to_mux[5]};
+  bind parser[6].parser_out {parser_to_mux[6]};
+  bind parser[7].parser_out {parser_to_mux[7]};
+  bind parser[8].parser_out {parser_to_mux[8]};
+  bind parser[9].parser_out {parser_to_mux[9]};
+  bind parser[10].parser_out {parser_to_mux[10]};
+  bind parser[11].parser_out {parser_to_mux[11]};
+  bind parser[12].parser_out {parser_to_mux[12]};
+  bind parser[13].parser_out {parser_to_mux[13]};
+  bind parser[14].parser_out {parser_to_mux[14]};
+  bind parser[15].parser_out {parser_to_mux[15]};
+
+  bind parser[0].memory_manager {memory_manager};
+  bind parser[1].memory_manager {memory_manager};
+  bind parser[2].memory_manager {memory_manager};
+  bind parser[3].memory_manager {memory_manager};
+  bind parser[4].memory_manager {memory_manager};
+  bind parser[5].memory_manager {memory_manager};
+  bind parser[6].memory_manager {memory_manager};
+  bind parser[7].memory_manager {memory_manager};
+  bind parser[8].memory_manager {memory_manager};
+  bind parser[9].memory_manager {memory_manager};
+  bind parser[10].memory_manager {memory_manager};
+  bind parser[11].memory_manager {memory_manager};
+  bind parser[12].memory_manager {memory_manager};
+  bind parser[13].memory_manager {memory_manager};
+  bind parser[14].memory_manager {memory_manager};
+  bind parser[15].memory_manager {memory_manager};
+
+  bind post_parse_mux.mux_input[0] {parser_to_mux[0]};
+  bind post_parse_mux.mux_input[1] {parser_to_mux[1]};
+  bind post_parse_mux.mux_input[2] {parser_to_mux[2]};
+  bind post_parse_mux.mux_input[3] {parser_to_mux[3]};
+  bind post_parse_mux.mux_input[4] {parser_to_mux[4]};
+  bind post_parse_mux.mux_input[5] {parser_to_mux[5]};
+  bind post_parse_mux.mux_input[6] {parser_to_mux[6]};
+  bind post_parse_mux.mux_input[7] {parser_to_mux[7]};
+  bind post_parse_mux.mux_input[8] {parser_to_mux[8]};
+  bind post_parse_mux.mux_input[9] {parser_to_mux[9]};
+  bind post_parse_mux.mux_input[10] {parser_to_mux[10]};
+  bind post_parse_mux.mux_input[11] {parser_to_mux[11]};
+  bind post_parse_mux.mux_input[12] {parser_to_mux[12]};
+  bind post_parse_mux.mux_input[13] {parser_to_mux[13]};
+  bind post_parse_mux.mux_input[14] {parser_to_mux[14]};
+  bind post_parse_mux.mux_input[15] {parser_to_mux[15]};
+
+  bind post_parse_mux.mux_output[0] {to_stage1};
+
+  bind match_stage[0].match_stage_in {to_stage1};
+  bind match_stage[1].match_stage_in {stage_to_stage[0]};
+  bind match_stage[2].match_stage_in {stage_to_stage[1]};
+  bind match_stage[3].match_stage_in {stage_to_stage[2]};
+  bind match_stage[4].match_stage_in {stage_to_stage[3]};
+  bind match_stage[5].match_stage_in {stage_to_stage[4]};
+  bind match_stage[6].match_stage_in {stage_to_stage[5]};
+  bind match_stage[7].match_stage_in {stage_to_stage[6]};
+  bind match_stage[8].match_stage_in {stage_to_stage[7]};
+  bind match_stage[9].match_stage_in {stage_to_stage[8]};
+  bind match_stage[10].match_stage_in {stage_to_stage[9]};
+  bind match_stage[11].match_stage_in {stage_to_stage[10]};
+  bind match_stage[12].match_stage_in {stage_to_stage[11]};
+  bind match_stage[13].match_stage_in {stage_to_stage[12]};
+  bind match_stage[14].match_stage_in {stage_to_stage[13]};
+  bind match_stage[15].match_stage_in {stage_to_stage[14]};
+  bind match_stage[16].match_stage_in {stage_to_stage[15]};
+  bind match_stage[17].match_stage_in {stage_to_stage[16]};
+  bind match_stage[18].match_stage_in {stage_to_stage[17]};
+  bind match_stage[19].match_stage_in {stage_to_stage[18]};
+  bind match_stage[20].match_stage_in {stage_to_stage[19]};
+  bind match_stage[21].match_stage_in {stage_to_stage[20]};
+  bind match_stage[22].match_stage_in {stage_to_stage[21]};
+  bind match_stage[23].match_stage_in {stage_to_stage[22]};
+  bind match_stage[24].match_stage_in {stage_to_stage[23]};
+  bind match_stage[25].match_stage_in {stage_to_stage[24]};
+  bind match_stage[26].match_stage_in {stage_to_stage[25]};
+  bind match_stage[27].match_stage_in {stage_to_stage[26]};
+  bind match_stage[28].match_stage_in {stage_to_stage[27]};
+  bind match_stage[29].match_stage_in {stage_to_stage[28]};
+  bind match_stage[30].match_stage_in {stage_to_stage[29]};
+  bind match_stage[31].match_stage_in {stage_to_stage[30]};
+
+  bind match_stage[0].match_stage_out {stage_to_stage[0]};
+  bind match_stage[1].match_stage_out {stage_to_stage[1]};
+  bind match_stage[2].match_stage_out {stage_to_stage[2]};
+  bind match_stage[3].match_stage_out {stage_to_stage[3]};
+  bind match_stage[4].match_stage_out {stage_to_stage[4]};
+  bind match_stage[5].match_stage_out {stage_to_stage[5]};
+  bind match_stage[6].match_stage_out {stage_to_stage[6]};
+  bind match_stage[7].match_stage_out {stage_to_stage[7]};
+  bind match_stage[8].match_stage_out {stage_to_stage[8]};
+  bind match_stage[9].match_stage_out {stage_to_stage[9]};
+  bind match_stage[10].match_stage_out {stage_to_stage[10]};
+  bind match_stage[11].match_stage_out {stage_to_stage[11]};
+  bind match_stage[12].match_stage_out {stage_to_stage[12]};
+  bind match_stage[13].match_stage_out {stage_to_stage[13]};
+  bind match_stage[14].match_stage_out {stage_to_stage[14]};
+  bind match_stage[15].match_stage_out {stage_to_stage[15]};
+  bind match_stage[16].match_stage_out {stage_to_stage[16]};
+  bind match_stage[17].match_stage_out {stage_to_stage[17]};
+  bind match_stage[18].match_stage_out {stage_to_stage[18]};
+  bind match_stage[19].match_stage_out {stage_to_stage[19]};
+  bind match_stage[20].match_stage_out {stage_to_stage[20]};
+  bind match_stage[21].match_stage_out {stage_to_stage[21]};
+  bind match_stage[22].match_stage_out {stage_to_stage[22]};
+  bind match_stage[23].match_stage_out {stage_to_stage[23]};
+  bind match_stage[24].match_stage_out {stage_to_stage[24]};
+  bind match_stage[25].match_stage_out {stage_to_stage[25]};
+  bind match_stage[26].match_stage_out {stage_to_stage[26]};
+  bind match_stage[27].match_stage_out {stage_to_stage[27]};
+  bind match_stage[28].match_stage_out {stage_to_stage[28]};
+  bind match_stage[29].match_stage_out {stage_to_stage[29]};
+  bind match_stage[30].match_stage_out {stage_to_stage[30]};
+  bind match_stage[31].match_stage_out {from_stage32};
+
+  bind match_stage[0].req_to_nvm {to_nvm};
+  bind match_stage[1].req_to_nvm {to_nvm};
+  bind match_stage[2].req_to_nvm {to_nvm};
+  bind match_stage[3].req_to_nvm {to_nvm};
+  bind match_stage[4].req_to_nvm {to_nvm};
+  bind match_stage[5].req_to_nvm {to_nvm};
+  bind match_stage[6].req_to_nvm {to_nvm};
+  bind match_stage[7].req_to_nvm {to_nvm};
+  bind match_stage[8].req_to_nvm {to_nvm};
+  bind match_stage[9].req_to_nvm {to_nvm};
+  bind match_stage[10].req_to_nvm {to_nvm};
+  bind match_stage[11].req_to_nvm {to_nvm};
+  bind match_stage[12].req_to_nvm {to_nvm};
+  bind match_stage[13].req_to_nvm {to_nvm};
+  bind match_stage[14].req_to_nvm {to_nvm};
+  bind match_stage[15].req_to_nvm {to_nvm};
+  bind match_stage[16].req_to_nvm {to_nvm};
+  bind match_stage[17].req_to_nvm {to_nvm};
+  bind match_stage[18].req_to_nvm {to_nvm};
+  bind match_stage[19].req_to_nvm {to_nvm};
+  bind match_stage[20].req_to_nvm {to_nvm};
+  bind match_stage[21].req_to_nvm {to_nvm};
+  bind match_stage[22].req_to_nvm {to_nvm};
+  bind match_stage[23].req_to_nvm {to_nvm};
+  bind match_stage[24].req_to_nvm {to_nvm};
+  bind match_stage[25].req_to_nvm {to_nvm};
+  bind match_stage[26].req_to_nvm {to_nvm};
+  bind match_stage[27].req_to_nvm {to_nvm};
+  bind match_stage[28].req_to_nvm {to_nvm};
+  bind match_stage[29].req_to_nvm {to_nvm};
+  bind match_stage[30].req_to_nvm {to_nvm};
+  bind match_stage[31].req_to_nvm {to_nvm};
+
+  bind match_stage[0].resp_from_nvm {from_nvm};
+  bind match_stage[1].resp_from_nvm {from_nvm};
+  bind match_stage[2].resp_from_nvm {from_nvm};
+  bind match_stage[3].resp_from_nvm {from_nvm};
+  bind match_stage[4].resp_from_nvm {from_nvm};
+  bind match_stage[5].resp_from_nvm {from_nvm};
+  bind match_stage[6].resp_from_nvm {from_nvm};
+  bind match_stage[7].resp_from_nvm {from_nvm};
+  bind match_stage[8].resp_from_nvm {from_nvm};
+  bind match_stage[9].resp_from_nvm {from_nvm};
+  bind match_stage[10].resp_from_nvm {from_nvm};
+  bind match_stage[11].resp_from_nvm {from_nvm};
+  bind match_stage[12].resp_from_nvm {from_nvm};
+  bind match_stage[13].resp_from_nvm {from_nvm};
+  bind match_stage[14].resp_from_nvm {from_nvm};
+  bind match_stage[15].resp_from_nvm {from_nvm};
+  bind match_stage[16].resp_from_nvm {from_nvm};
+  bind match_stage[17].resp_from_nvm {from_nvm};
+  bind match_stage[18].resp_from_nvm {from_nvm};
+  bind match_stage[19].resp_from_nvm {from_nvm};
+  bind match_stage[20].resp_from_nvm {from_nvm};
+  bind match_stage[21].resp_from_nvm {from_nvm};
+  bind match_stage[22].resp_from_nvm {from_nvm};
+  bind match_stage[23].resp_from_nvm {from_nvm};
+  bind match_stage[24].resp_from_nvm {from_nvm};
+  bind match_stage[25].resp_from_nvm {from_nvm};
+  bind match_stage[26].resp_from_nvm {from_nvm};
+  bind match_stage[27].resp_from_nvm {from_nvm};
+  bind match_stage[28].resp_from_nvm {from_nvm};
+  bind match_stage[29].resp_from_nvm {from_nvm};
+  bind match_stage[30].resp_from_nvm {from_nvm};
+  bind match_stage[31].resp_from_nvm {from_nvm};
+
+  bind deparser.deparser_in {from_stage32};
+
+  bind deparser.deparser_out {pipe_out};
+
+  bind deparser.memory_manager {memory_manager};
+
 };
 
 PE Pipeline {
@@ -107,19 +383,16 @@ PE Pipeline {
 
   Queue to_stage1;
   Queue from_stage32;
-  Queue stage_to_stage[31];
-  Queue demux_to_parser[16];
-  Queue parser_to_mux[16];
+  Queue stage_to_stage[31]; // 32 stages per pipeline
+  Queue demux_to_parser[16]; // 16 ports 
+  Queue parser_to_mux[16]; //16 ports
 
+  // this refers to the 16 ports incoming to the parser for each pipeline (i.e. 64 port switch meaning 16 ports/pipeline * 4 pipelines)
   Parser parser[16];
   Demultiplexer pre_parse_demux;
   Multiplexer post_parse_mux;
   MatchStage match_stage[32];
   Deparser deparser;
-
-  // Add to send lookup to NVM device here..
-  QueueWrI to_nvm;
-  QueueRdI from_nvm;
 
   MemoryManagerS memory_manager;
 
@@ -278,73 +551,6 @@ PE Pipeline {
   bind match_stage[30].match_stage_out {stage_to_stage[30]};
   bind match_stage[31].match_stage_out {from_stage32};
 
-  // Finally, bind the match stage req/resp to appropriate global NVM memory
-  bind match_stage[0].req_to_nvm {to_nvm};
-  bind match_stage[1].req_to_nvm {to_nvm};
-  bind match_stage[2].req_to_nvm {to_nvm};
-  bind match_stage[3].req_to_nvm {to_nvm};
-  bind match_stage[4].req_to_nvm {to_nvm};
-  bind match_stage[5].req_to_nvm {to_nvm};
-  bind match_stage[6].req_to_nvm {to_nvm};
-  bind match_stage[7].req_to_nvm {to_nvm};
-  bind match_stage[8].req_to_nvm {to_nvm};
-  bind match_stage[9].req_to_nvm {to_nvm};
-  bind match_stage[10].req_to_nvm {to_nvm};
-  bind match_stage[11].req_to_nvm {to_nvm};
-  bind match_stage[12].req_to_nvm {to_nvm};
-  bind match_stage[13].req_to_nvm {to_nvm};
-  bind match_stage[14].req_to_nvm {to_nvm};
-  bind match_stage[15].req_to_nvm {to_nvm};
-  bind match_stage[16].req_to_nvm {to_nvm};
-  bind match_stage[17].req_to_nvm {to_nvm};
-  bind match_stage[18].req_to_nvm {to_nvm};
-  bind match_stage[19].req_to_nvm {to_nvm};
-  bind match_stage[20].req_to_nvm {to_nvm};
-  bind match_stage[21].req_to_nvm {to_nvm};
-  bind match_stage[22].req_to_nvm {to_nvm};
-  bind match_stage[23].req_to_nvm {to_nvm};
-  bind match_stage[24].req_to_nvm {to_nvm};
-  bind match_stage[25].req_to_nvm {to_nvm};
-  bind match_stage[26].req_to_nvm {to_nvm};
-  bind match_stage[27].req_to_nvm {to_nvm};
-  bind match_stage[28].req_to_nvm {to_nvm};
-  bind match_stage[29].req_to_nvm {to_nvm};
-  bind match_stage[30].req_to_nvm {to_nvm};
-  bind match_stage[31].req_to_nvm {to_nvm};
-
-  bind match_stage[0].resp_from_nvm {from_nvm};
-  bind match_stage[1].resp_from_nvm {from_nvm};
-  bind match_stage[2].resp_from_nvm {from_nvm};
-  bind match_stage[3].resp_from_nvm {from_nvm};
-  bind match_stage[4].resp_from_nvm {from_nvm};
-  bind match_stage[5].resp_from_nvm {from_nvm};
-  bind match_stage[6].resp_from_nvm {from_nvm};
-  bind match_stage[7].resp_from_nvm {from_nvm};
-  bind match_stage[8].resp_from_nvm {from_nvm};
-  bind match_stage[9].resp_from_nvm {from_nvm};
-  bind match_stage[10].resp_from_nvm {from_nvm};
-  bind match_stage[11].resp_from_nvm {from_nvm};
-  bind match_stage[12].resp_from_nvm {from_nvm};
-  bind match_stage[13].resp_from_nvm {from_nvm};
-  bind match_stage[14].resp_from_nvm {from_nvm};
-  bind match_stage[15].resp_from_nvm {from_nvm};
-  bind match_stage[16].resp_from_nvm {from_nvm};
-  bind match_stage[17].resp_from_nvm {from_nvm};
-  bind match_stage[18].resp_from_nvm {from_nvm};
-  bind match_stage[19].resp_from_nvm {from_nvm};
-  bind match_stage[20].resp_from_nvm {from_nvm};
-  bind match_stage[21].resp_from_nvm {from_nvm};
-  bind match_stage[22].resp_from_nvm {from_nvm};
-  bind match_stage[23].resp_from_nvm {from_nvm};
-  bind match_stage[24].resp_from_nvm {from_nvm};
-  bind match_stage[25].resp_from_nvm {from_nvm};
-  bind match_stage[26].resp_from_nvm {from_nvm};
-  bind match_stage[27].resp_from_nvm {from_nvm};
-  bind match_stage[28].resp_from_nvm {from_nvm};
-  bind match_stage[29].resp_from_nvm {from_nvm};
-  bind match_stage[30].resp_from_nvm {from_nvm};
-  bind match_stage[31].resp_from_nvm {from_nvm};
-
   bind deparser.deparser_in {from_stage32};
 
   bind deparser.deparser_out {pipe_out};
@@ -383,7 +589,14 @@ PE RMT implements ControlPlaneAgentS {
   QueueWrI rmt_out;
 
   Queue to_buffer, from_buffer, agent_to_ingress, egress_to_agent, to_ingress, from_egress;
-  Pipeline ingress_pipeline, egress_pipeline;
+  //Pipeline ingress_pipeline, egress_pipeline;
+  
+  // mimic Tofino 2's implementation which has 4 pipelines
+  Pipeline p0, p1, p2, p3; // p1,p3 are unused right now, for testing purposes
+
+  Queue to_pp_buffer, from_pp_buffer, to_pp_ingress, from_pp_egress;
+  PersistentPipeline pp0, pp1; //pp0 will be ingress nvm, pp1 will be egress nvm pipelines
+
   Buffer buffer;
   ControlPlaneAgent cp_agent;
   IngressMultiplexer ingress_mux;
@@ -406,16 +619,25 @@ PE RMT implements ControlPlaneAgentS {
   bind egress_demux.packet_out {rmt_out};
   bind egress_demux.to_agent {egress_to_agent};
 
-  bind ingress_pipeline.pipe_in {to_ingress};
-  bind ingress_pipeline.pipe_out {to_buffer};
-  bind ingress_pipeline.memory_manager {memory_manager};
+  // treat p0,p1 as ingress pipelines, p2,p3 as egress pipelines
+  bind p0.pipe_in {to_ingress};
+  bind p0.pipe_in {to_buffer};
+  bind p0.memory_manager {memory_manager};
+
+  //bind ingress_pipeline.pipe_in {to_ingress};
+  //bind ingress_pipeline.pipe_out {to_buffer};
+  //bind ingress_pipeline.memory_manager {memory_manager};
 
   bind buffer.buffer_in {to_buffer};
   bind buffer.buffer_out {from_buffer};
 
-  bind egress_pipeline.pipe_in {from_buffer};
-  bind egress_pipeline.pipe_out {from_egress};
-  bind egress_pipeline.memory_manager {memory_manager};
+  bind p2.pipe_in {from_buffer};
+  bind p2.pipe_out {from_egress};
+  bind p2.memory_manager {memory_manager};
+
+  //bind egress_pipeline.pipe_in {from_buffer};
+  //bind egress_pipeline.pipe_out {from_egress};
+  //bind egress_pipeline.memory_manager {memory_manager};
 
   // Instead of writing table entries from cp agent to match stages in ingress/egress stages write 
   // them to nvm global table first
@@ -426,18 +648,20 @@ PE RMT implements ControlPlaneAgentS {
   //bind cp_agent.to_ingress {agent_to_nvm};
   //bind cp_agent.from_egress {agent_from_nvm}; 
 
-  // Also add connections from ingress and egress to nvm here..
-  bind ingress_pipeline.to_nvm {local_pipe_to_nvm};
-  bind ingress_pipeline.from_nvm {local_pipe_from_nvm};
-  bind egress_pipeline.to_nvm {local_pipe_to_nvm};
-  bind egress_pipeline.from_nvm {local_pipe_from_nvm};
+  // Now, don't add connections from p0-p3 to NVM here, instead those pipelines have their 
+  // own SRAM memory (as in traditional RMT architecture)
+  
+  //bind ingress_pipeline.to_nvm {local_pipe_to_nvm};
+  //bind ingress_pipeline.from_nvm {local_pipe_from_nvm};
+  //bind egress_pipeline.to_nvm {local_pipe_to_nvm};
+  //bind egress_pipeline.from_nvm {local_pipe_from_nvm};
 
-  // bind the table_in for nvm here..
-  bind nvm_match_table.table_in {local_pipe_to_nvm};
-  bind nvm_match_table.table_out {local_pipe_from_nvm};
-  bind nvm_match_table.nse_port {nse};
+  // Againt, don't worry about binding the table just yet
+  //bind nvm_match_table.table_in {local_pipe_to_nvm};
+  //bind nvm_match_table.table_out {local_pipe_from_nvm};
+  //bind nvm_match_table.nse_port {nse};
 
-
+  
   bind memory_manager.mem_port[0] {mem};
 };
 
