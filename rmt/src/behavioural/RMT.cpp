@@ -184,8 +184,14 @@ void RMT::configure_match_stages(std::string p4_json_path) {
     cout << endl;)
 
     // Send configs to pipelines
-    ingress_pipeline->configure(ingress_match_stages);
-    egress_pipeline->configure(egress_match_stages);
+    p0->configure(ingress_match_stages);
+    p2->configure(egress_match_stages);
+
+    // Need to modify what configs to send to pp0 as well,
+    // right now sending no configs because the match stages assume a 
+    // single large lookup table - same as TEA
+    pp0->configure();
+    pp1->configure();
 
   } else {
     SC_REPORT_ERROR("RMT", "Unable to open p4 json file.");

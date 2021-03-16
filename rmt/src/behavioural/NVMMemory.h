@@ -5,7 +5,7 @@
 #include "../structural/NVMMemorySIM.h"
 #include "NVMMemI.h"
 
-const std::string module_name = "NVMMemory";
+//const std::string module_name = "NVMMemory";
 
 // #define debug_tlm_mem_transaction 1
 template<typename T>

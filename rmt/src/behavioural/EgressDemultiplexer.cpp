@@ -57,7 +57,8 @@ void EgressDemultiplexer::EgressDemultiplexerThread(std::size_t thread_id) {
         npulog(profile, std::cout << " Forwarding packet " << received->id()
               << " to egress." << std::endl;)
         packet_out->put(received);
-      } else {
+      } 
+      else {
         npulog(profile, std::cout << " Forwarding message " << received->id()
               << " to agent." << std::endl;)
         to_agent->put(received);

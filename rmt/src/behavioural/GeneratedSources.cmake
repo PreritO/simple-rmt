@@ -27,8 +27,14 @@ ${CMAKE_CURRENT_SOURCE_DIR}/VLIWAction.h
 ${CMAKE_CURRENT_SOURCE_DIR}/VLIWAction.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/ControlPlane.h
 ${CMAKE_CURRENT_SOURCE_DIR}/ControlPlane.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentMatchStage.h
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentMatchStage.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/EgressDemultiplexer.h
+${CMAKE_CURRENT_SOURCE_DIR}/EgressDemultiplexer.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Multiplexer.h
 ${CMAKE_CURRENT_SOURCE_DIR}/Multiplexer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/CustomComponent.h
+${CMAKE_CURRENT_SOURCE_DIR}/CustomComponent.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/NVMSearchEngine.h
 ${CMAKE_CURRENT_SOURCE_DIR}/NVMSearchEngine.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/SramSearchEngine.h
@@ -59,8 +65,10 @@ ${CMAKE_CURRENT_SOURCE_DIR}/SRAMMatchTable.h
 ${CMAKE_CURRENT_SOURCE_DIR}/SRAMMatchTable.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/ControlPlaneAgent.h
 ${CMAKE_CURRENT_SOURCE_DIR}/ControlPlaneAgent.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/EgressDemultiplexer.h
-${CMAKE_CURRENT_SOURCE_DIR}/EgressDemultiplexer.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentSelector.h
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentSelector.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentPipeline.h
+${CMAKE_CURRENT_SOURCE_DIR}/PersistentPipeline.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Deparser.h
 ${CMAKE_CURRENT_SOURCE_DIR}/Deparser.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/Parser.h

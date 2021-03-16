@@ -78,7 +78,7 @@ void Deparser::DeparserThread(std::size_t thread_id) {
         // TrType to be sent out
         std::shared_ptr<pfp::core::TrType> out = nullptr;
 
-        if (parent_->module_name() == "ingress_pipeline") {
+        if (parent_->module_name() == "p0") {
           // Store the entire packet in common data buffer at
           // the location of the packet's payload
           memory_manager->write(payload_addr, phv->id(),
@@ -94,7 +94,7 @@ void Deparser::DeparserThread(std::size_t thread_id) {
                     phv->packet().get()->get_data_size());
           pkt_ptr->phv = phv;
           out = pkt_ptr;
-        } else if (parent_->module_name() == "egress_pipeline") {
+        } else if (parent_->module_name() == "p2") {
           // called packet because currently, the entire packet is stored,
           // not just the payload
           std::size_t packet_id;

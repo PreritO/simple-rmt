@@ -5,7 +5,7 @@
 #include "../structural/SramMemorySIM.h"
 #include "SramMemI.h"
 
-const std::string module_name = "SramMemory";
+//const std::string module_name = "SramMemory";
 
 // #define debug_tlm_mem_transaction 1
 template<typename T>

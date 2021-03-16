@@ -52,6 +52,9 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
             npulog(normal, std::cout << module_stack
                   << " performing lookup on packet " << phv->id() << " ("
                   << stage_name << ")"<< std::endl;)
+            // this is where we indicate that a lookup was successfully 
+            // done on the packet
+            phv->setLookupState(true);
             const bm::ControlFlowNode* next_control_flow_node =
                   (*control_flow_node)(phv->packet().get());
             if (next_control_flow_node != 0) {
@@ -80,11 +83,13 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
             npulog(profile, cout << module_stack
                   << " is not the next stage for packet " << phv->id()
                   << ". Writing packet to output port." << endl;)
+            phv->setLookupState(false);
           }
         } else {
           npulog(profile, cout << module_stack
                 << " is an empty stage. Writing packet to output port."
                 << endl;)
+          phv->setLookupState(false);
         }
         // Write packet
         npulog(profile, std::cout << module_stack << " wrote packet "

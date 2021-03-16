@@ -56,7 +56,7 @@ class PacketHeaderVector: public pfp::core::PacketBase {
  public:
   PacketHeaderVector(std::size_t id, std::vector<char> raw_header,
       std::string table = "")
-      : size(raw_header.size()),
+      : size(raw_header.size()), lookup_state(false),
         p4_packet(P4::get("rmt")->new_packet_ptr(0/*ingress_port*/,
           id, raw_header.size(),
           bm::PacketBuffer(
@@ -78,6 +78,9 @@ class PacketHeaderVector: public pfp::core::PacketBase {
   void setPayloadAddress(TLMAddress addr) {payload_addr = addr;}
   TLMAddress getPayloadAddress() const {return payload_addr;}
 
+  void setLookupState(bool newState) {lookup_state = newState;}
+  bool getLookupState() const {return lookup_state;}
+
   bool debuggable() const override {return true;}
 
  private:
@@ -85,6 +88,8 @@ class PacketHeaderVector: public pfp::core::PacketBase {
   std::shared_ptr<bm::Packet> p4_packet;  // p4 packet object
   std::string next_table;  // next table or conditional to apply to packet
   TLMAddress payload_addr;
+  bool lookup_state;
+
 };
 
 #endif  // BEHAVIOURAL_PACKETHEADERVECTOR_H_

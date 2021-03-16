@@ -57,13 +57,23 @@ void ControlPlaneAgent::init() {
 
 void ControlPlaneAgent::ControlPlaneAgent_PortServiceThread() {
   while (1) {
-    if (!from_egress->nb_can_get()) {
-      wait(from_egress->ok_to_get());
+    if (!from_egress->nb_can_get() && !from_nvm->nb_can_get()) {
+      wait(from_egress->ok_to_get() | from_nvm->ok_to_get());
     } else {
-      auto received = from_egress->get();
-      if (std::dynamic_pointer_cast<RMTMessage>(received)) {
-        reply_queue.push(std::dynamic_pointer_cast<RMTMessage>(received));
-        reply_received.notify();
+      if (from_egress->nb_can_get()) {
+        auto received = from_egress->get();
+        if (std::dynamic_pointer_cast<RMTMessage>(received)) {
+          reply_queue.push(std::dynamic_pointer_cast<RMTMessage>(received));
+          reply_received.notify();
+        } 
+      } else if (from_nvm->nb_can_get()) {
+        auto received = from_nvm->get();
+        if (std::dynamic_pointer_cast<RMTMessage>(received)) {
+          reply_queue.push(std::dynamic_pointer_cast<RMTMessage>(received));
+          reply_received.notify();
+        } 
+      } else {
+        SC_REPORT_ERROR("Control Plane Agent", "Impossible Condition!");
       }
     }
   }
@@ -160,7 +170,9 @@ ControlPlaneAgent::process(pfp::cp::InsertCommand * cmd) {
   npulog(normal, std::cout
         << "Sending AddTableEntry message from ControlPlaneAgent. "
         << msg->table_name << " --> " << msg->match_key_str << std::endl;)
-  to_ingress->put(msg);
+  //to_ingress->put(msg);
+  // send to NVM instead...
+  to_nvm->put(msg);
 
   wait(reply_received);
 

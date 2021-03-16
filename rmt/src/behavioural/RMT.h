@@ -34,6 +34,7 @@
 #include <string>
 #include "structural/RMTSIM.h"
 #include "MatchStageConfig.h"
+#include "PersistentMatchStageConfig.h"
 
 class RMT: public RMTSIM {
  public:

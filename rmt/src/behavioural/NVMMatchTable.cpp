@@ -36,9 +36,7 @@ void NVMMatchTable::NVMMatchTable_PortServiceThread() {
 }
 
 void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
-      std::string module_stack = parent_->GetParent()->module_name() + "->"
-        + parent_->module_name() + "->" + module_name();
-        
+      std::string module_stack = "NVM";
       while(1) {
             if (!table_in->nb_can_get()) {
                   wait(table_in->ok_to_get());
@@ -58,6 +56,9 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               << " performing lookup on packet " << phv->id() << " ("
                               << global_table << ")"<< std::endl;)
                         
+                        // have to set it to true so backet can be forwarded from egress correctly
+                        phv->setLookupState(true);
+
                         async_queue.push(phv);
                         async_rx.notify();
 

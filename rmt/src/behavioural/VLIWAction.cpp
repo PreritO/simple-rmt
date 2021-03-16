@@ -68,9 +68,9 @@ void VLIWAction::VLIWActionThread(std::size_t thread_id) {
       }
       npulog(profile, std::cout << module_stack << " received "
             << received_type << " " << received->id() << std::endl;)
-      if (parent->has_config) {
-        wait(1/(pktTxRate*1.0), SC_NS);
-      }
+      // if (parent->has_config) {
+      wait(1/(pktTxRate*1.0), SC_NS);
+      // }
       if (!action_out->nb_can_put()) {
         wait(action_out->ok_to_put());
       }
