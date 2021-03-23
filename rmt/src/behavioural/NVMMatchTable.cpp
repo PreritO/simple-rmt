@@ -38,45 +38,63 @@ void NVMMatchTable::NVMMatchTable_PortServiceThread() {
 void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
       std::string module_stack = "NVM";
       while(1) {
-            if (!table_in->nb_can_get()) {
-                  wait(table_in->ok_to_get());
+            if (!table_in->nb_can_get() && !cp_agent_in->nb_can_get()) {
+                  wait(table_in->ok_to_get() | cp_agent_in->ok_to_get());
             } else {
                   // read input
-                  auto received_pkt = table_in->get();
-                  if (received_pkt->data_type() == "PacketHeaderVector") { 
-                        std::shared_ptr<PacketHeaderVector> phv =
-                        std::dynamic_pointer_cast<PacketHeaderVector>(received_pkt);
-                        npulog(profile, std::cout << module_stack << " received packet "
-                              << phv->id() << std::endl;)
-                        
-                        npulog(profile, std::cout << module_stack
+                  if (table_in->nb_can_get()) {
+                        auto received_pkt = table_in->get();
+                        if (received_pkt->data_type() == "PacketHeaderVector") { 
+                              std::shared_ptr<PacketHeaderVector> phv =
+                              std::dynamic_pointer_cast<PacketHeaderVector>(received_pkt);
+                              npulog(profile, std::cout << module_stack << " received packet "
+                                    << phv->id() << std::endl;)
+                              
+                              npulog(profile, std::cout << module_stack
+                                          << " performing lookup on packet " << phv->id() << " ("
+                                          << global_table << ")"<< std::endl;)
+                              npulog(normal, std::cout << module_stack
                                     << " performing lookup on packet " << phv->id() << " ("
                                     << global_table << ")"<< std::endl;)
-                        npulog(normal, std::cout << module_stack
-                              << " performing lookup on packet " << phv->id() << " ("
-                              << global_table << ")"<< std::endl;)
-                        
-                        // have to set it to true so backet can be forwarded from egress correctly
-                        phv->setLookupState(true);
+                              
+                              // have to set it to true so backet can be forwarded from egress correctly
+                              phv->setLookupState(true);
 
-                        async_queue.push(phv);
-                        async_rx.notify();
+                              async_queue.push(phv);
+                              async_rx.notify();
 
-                        // helps regulate the throughpt 
-                        wait(1/(pktTxRate*1.0), SC_NS);
-                        // // Write packet
-                        // npulog(profile, std::cout << module_stack << " wrote packet "
-                        //       << phv->id() << std::endl;)
-                        // idea is that I write the packet out, and then perform the lookup
-                        // not on critical path (similar to rdma request/response idealogy)
-                        table_out->put(phv);
-                  } else {
+                              // helps regulate the throughpt 
+                              wait(1/(pktTxRate*1.0), SC_NS);
+                              // // Write packet
+                              npulog(profile, std::cout << module_stack << " wrote packet "
+                                    << phv->id() << std::endl;)
+                              // idea is that I write the packet out, and then perform the lookup
+                              // not on critical path (similar to rdma request/response idealogy)
+                              table_out->put(phv);
+                        } else {
+                              // the following message SHOULD come from cp agent instead...
+                              //SC_REPORT_ERROR("NVM Match Table", "Invalid Command in Table IN queue!");
+                              npulog(profile, std::cout << module_stack << " Invalid Command in Table IN queue: "
+                                    << received_pkt->data_type() << std::endl;)
+                              std::shared_ptr<RMTMessage> msg
+                                    = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
+                              npulog(profile, std::cout << module_stack << " received message "
+                                    << received_pkt->id() << std::endl;)
+                              msg->execute(*this);
+                              cp_agent_out->put(msg);
+                        }
+                  } else if (cp_agent_in->nb_can_get()) {
+                        auto received_pkt = cp_agent_in->get();
                         std::shared_ptr<RMTMessage> msg
-                              = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
+                                    = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
+                        npulog(normal, std::cout << module_stack << " received message "
+                              << received_pkt->id() << std::endl;)
                         npulog(profile, std::cout << module_stack << " received message "
                               << received_pkt->id() << std::endl;)
                         msg->execute(*this);
-                        table_out->put(msg);
+                        cp_agent_out->put(msg);
+                  } else {
+                        SC_REPORT_ERROR("NVM Match Table", "Impossible Condition!");
                   }
             }
       }

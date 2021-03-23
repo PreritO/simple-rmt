@@ -119,6 +119,10 @@ void Deparser::DeparserThread(std::size_t thread_id) {
                   << "'s payload was retrieved incorrectly." << std::endl;)
           }
           out = phv;
+        } else {
+              npulog(profile, std::cout << "invalid module name" <<std::endl;)
+              npulog(normal, std::cout << "invalid module name" <<std::endl;)
+
         }
 
         // Wait until the deparser can put

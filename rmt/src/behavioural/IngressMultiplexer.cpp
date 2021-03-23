@@ -71,6 +71,7 @@ void IngressMultiplexer::IngressMultiplexerThread(std::size_t thread_id) {
           output->put(received);
           // outlog<<received->id()<<","<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
         } else {
+          //output->put(received);
           wait(packet_in->ok_to_get() | from_agent->ok_to_get());
         }
       } else {

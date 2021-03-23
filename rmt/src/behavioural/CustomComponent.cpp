@@ -56,6 +56,7 @@ void CustomComponent::CustomComponent_PortServiceThread() {
       } else {
         npulog(profile, std::cout << module_stack << " Received arbitary message " << received->data_type() << std::endl;)
         npulog(normal, std::cout << module_stack << " Received arbitary message " << received->data_type() << std::endl;)
+        output->put(received);
       }
     }
   }

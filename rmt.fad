@@ -62,8 +62,8 @@ PE PersistentSelector("PacketGeneratorConfig.cfg") {
 };
 
 PE NVMMatchTable("PacketGeneratorConfig.cfg") {
-  QueueRdI table_in;
-  QueueWrI table_out;
+  QueueRdI table_in, cp_agent_in;
+  QueueWrI table_out, cp_agent_out;
   NVMSearchEngineS nse_port;
 };
 
@@ -84,7 +84,7 @@ PE PersistentMatchStage {
   QueueRdI match_stage_in;
   QueueWrI match_stage_out;
 
-  Queue selector_to_match, match_to_action;
+  //Queue selector_to_match, match_to_action;
   PersistentSelector selector;
   
   // each stage has its own SRAM (which will start off as empty and be used to flush writes to NVM - TODO)
@@ -575,8 +575,10 @@ PE Buffer("PacketGeneratorConfig.cfg") {
 };
 
 PE ControlPlaneAgent implements ControlPlaneAgentS {
-  QueueRdI from_egress, from_nvm;
-  QueueWrI to_ingress, to_nvm;
+  QueueRdI from_egress;
+  QueueRdI from_nvm;
+  QueueWrI to_ingress;
+  QueueWrI to_nvm;
 };
 
 PE ControlPlane {
@@ -608,10 +610,8 @@ PE RMT implements ControlPlaneAgentS {
   Queue to_cc0, to_cc1;
   Queue to_central_buffer, from_central_buffer;
   Queue agent_to_ingress, egress_to_agent; // Buffers connecting agent to ingress and egress pipelines to indicte pkts can start flowing
-  Queue agent_to_nvm, agent_from_nvm; // Single Buffer managaing agent writing rules to just NVM instead of ingress/egress stages
   Queue to_ingress, from_egress;
   Queue to_pp0, from_pp0, to_pp1, from_pp1; // Queue managing flow of PHVs to persistent pipelines
-  Queue to_nvm, from_nvm;
 
   // Pipeline ingress_pipeline, egress_pipeline;
   // mimic Tofino 2's implementation which has 4 pipelines
@@ -626,23 +626,45 @@ PE RMT implements ControlPlaneAgentS {
   EgressDemultiplexer egress_demux;
   CustomComponent cc0, cc1;
 
-  // This mem module is meant to store pkts in the switch
+  // This mem module is meant to tmp store pkts in the switch
   MemoryManager memory_manager;
   Memory mem;
 
-  // todo: add bandwidth parameter for nvm - PO 
+  // todo: add bandwidth parameter for NVM - Prerit 
   NVMMatchTable nvm_match_table;
   NVMSearchEngine nse;
   Queue local_pipe_to_nvm, local_pipe_from_nvm; //referenced from each stage in PersistentPipeline
+  Queue agent_to_nvm, agent_from_nvm; // Single Buffer managing agent writing rules to just NVM instead of ingress/egress stages
 
-  // okay, flow of PHVs looks like: 
+  // CP Agent to NVM to store rules:
+  // this will send an AddTableEntry message from ControlPlaneAgent 
+  // to NVM instead of individual stages at the moment
+  bind cp_agent.to_nvm {agent_to_nvm};
+  // to get confirmation for successfully added entry 
+  bind cp_agent.from_nvm {agent_from_nvm}; 
+
+  // To send cmd to ingress mux when to start accepting pkts
+  bind cp_agent.to_ingress {agent_to_ingress};  
+  // to get confirmation for successfully added entry - don't need this if only writing to nvm
+  bind cp_agent.from_egress {egress_to_agent};
+
+  // NVM Module
+  bind nvm_match_table.table_in {local_pipe_to_nvm}; // lookup, phv in
+  bind nvm_match_table.table_out {local_pipe_from_nvm}; // lookup output, phv out
+  bind nvm_match_table.nse_port {nse}; // search engine
+
+  bind nvm_match_table.cp_agent_in {agent_to_nvm}; // to add table entries
+  bind nvm_match_table.cp_agent_out {agent_from_nvm}; // to respond for successful table add entry
+
+  // okay, flow of PHV lookups looks like: 
   // RMT IN -> ingress_mux -> ingress_pipieline -> Custom Component -> Buffer -> egress_pipeline -> Custom Component -> egress_demux->RMT OUT 
 
   bind ingress_mux.packet_in {rmt_in};
-  bind ingress_mux.from_agent {agent_to_ingress}; 
+  bind ingress_mux.from_agent {agent_to_ingress}; // because Ingress Multiplexer needs to know when to begin accepting pkts 
   bind ingress_mux.output {to_ingress};
 
   // treat p0,p1 as ingress pipelines, p2,p3 as egress pipelines
+  // ingress
   bind p0.pipe_in {to_ingress};
   bind p0.pipe_out {to_cc0};
   bind p0.memory_manager {memory_manager};
@@ -658,6 +680,7 @@ PE RMT implements ControlPlaneAgentS {
   bind buffer.buffer_in {to_central_buffer};
   bind buffer.buffer_out {from_central_buffer};
 
+  // egress
   bind p2.pipe_in {from_central_buffer};
   bind p2.pipe_out {to_cc1};
   bind p2.memory_manager {memory_manager};
@@ -672,27 +695,15 @@ PE RMT implements ControlPlaneAgentS {
 
   bind egress_demux.input {from_egress};
   bind egress_demux.packet_out {rmt_out};
-  bind egress_demux.to_agent {egress_to_agent}; // Won't be sending any packets from egress_mux to confirm rule wrrites from agent
-  // Instead of writing table entries from cp agent to match stages in ingress/egress stages write 
-  // them to nvm global table
+  bind egress_demux.to_agent {egress_to_agent}; 
   
-  bind cp_agent.to_ingress {agent_to_ingress};
-  bind cp_agent.from_egress {egress_to_agent};
-
-  bind cp_agent.to_nvm {to_nvm};  // this will send AddTableEntry message from ControlPlaneAgent to NVM instead of stages
-  bind cp_agent.from_nvm{from_nvm}; 
-
   // Now, don't add connections from p0-p3 to NVM here, instead those pipelines have their own SRAM memory
   // (as in traditional RMT architecture) But we do want to bind persistent pipeline nvm connections here
-  bind pp0.to_nvm {to_nvm};
-  bind pp0.from_nvm {from_nvm};
-  bind pp1.to_nvm {to_nvm};
-  bind pp1.from_nvm {from_nvm};
-  
-  bind nvm_match_table.table_in {to_nvm};
-  bind nvm_match_table.table_out {from_nvm};
-  bind nvm_match_table.nse_port {nse};
-  
+  bind pp0.to_nvm {local_pipe_to_nvm};
+  bind pp0.from_nvm {local_pipe_from_nvm};
+  bind pp1.to_nvm {local_pipe_to_nvm};
+  bind pp1.from_nvm {local_pipe_from_nvm};
+
   bind memory_manager.mem_port[0] {mem};
 };
 

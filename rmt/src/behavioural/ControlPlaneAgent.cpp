@@ -65,12 +65,20 @@ void ControlPlaneAgent::ControlPlaneAgent_PortServiceThread() {
         if (std::dynamic_pointer_cast<RMTMessage>(received)) {
           reply_queue.push(std::dynamic_pointer_cast<RMTMessage>(received));
           reply_received.notify();
-        } 
+        } else {
+          npulog(normal, cout << "Not an RMT Message, forwarding packet.." << endl;)
+          npulog(profile, cout << "Not an RMT Message, forwarding packet.." << endl;)
+          to_ingress->put(received);
+        }
       } else if (from_nvm->nb_can_get()) {
         auto received = from_nvm->get();
         if (std::dynamic_pointer_cast<RMTMessage>(received)) {
           reply_queue.push(std::dynamic_pointer_cast<RMTMessage>(received));
           reply_received.notify();
+        } else {
+          npulog(normal, cout << "Not an RMT Message, forwarding packet.." << endl;)
+          npulog(profile, cout << "Not an RMT Message, forwarding packet.." << endl;)
+          to_nvm->put(received);
         } 
       } else {
         SC_REPORT_ERROR("Control Plane Agent", "Impossible Condition!");

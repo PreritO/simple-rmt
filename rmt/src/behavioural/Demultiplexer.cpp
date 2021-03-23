@@ -52,6 +52,8 @@ void Demultiplexer::Demultiplexer_PortServiceThread() {
 }
 
 void Demultiplexer::DemultiplexerThread(std::size_t thread_id) {
+  std::string module_stack = parent_->GetParent()->module_name() + "->"
+        + parent_->module_name() + "->" + module_name();
   while (1) {
     if (!nb_can_gets(demux_input)) {
       wait(multiport_data_written_event(demux_input));

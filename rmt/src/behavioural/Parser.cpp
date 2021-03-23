@@ -120,7 +120,7 @@ void Parser::ParserThread(std::size_t thread_id) {
       npulog(normal, std::cout << module_stack << " parsed packet "
             << packet->id() << " (" << num_states << " states)" << std::endl;)
 
-      if (parent_->module_name() == "ingress_pipeline") {
+      if (parent_->module_name() == "p0" || parent_->module_name() == "pp0") {
         // Get payload from bm::Packet
         char* payload = packet->packet().get()->data();
         // Get payload size from bm::Packet
@@ -132,7 +132,7 @@ void Parser::ParserThread(std::size_t thread_id) {
               payload, data_size);
         // Save the address of the payload in the PacketHeaderVector
         packet->setPayloadAddress(payload_addr);
-      } else if (parent_->module_name() == "egress_pipeline") {
+      } else if (parent_->module_name() == "p2" || parent_->module_name() == "pp1") {
         // The payload is already stored in the common data buffer
         // so there is no need to do it again
         // This is kept in case it is need in the future
