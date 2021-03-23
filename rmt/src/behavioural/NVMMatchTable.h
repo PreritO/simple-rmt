@@ -28,8 +28,8 @@ class NVMMatchTable: public NVMMatchTableSIM {  // NOLINT(whitespace/line_length
 
   std::vector<sc_process_handle> ThreadHandles;
 
-  MTQueue<std::shared_ptr<PacketHeaderVector>> async_queue;
-  sc_event async_rx;
+  // MTQueue<std::shared_ptr<PacketHeaderVector>> async_queue;
+  // sc_event async_rx;
 
   std::string global_table;
 

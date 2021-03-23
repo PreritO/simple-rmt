@@ -11,10 +11,6 @@ NVMMatchTable::NVMMatchTable(sc_module_name nm, pfp::core::PFPObject* parent,
   //original scenario here, no asynch processing...
   ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchTableOriginalThread,
         this, 0)));
-  ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchAsyncLookupThread,
-        this, 1)));
-  ThreadHandles.push_back(sc_spawn(sc_bind(&NVMMatchTable::NVMMatchAsyncResponseThread,
-        this, 2)));
 
   pktTxRate = GetParameter("tx_rate").get();
   if (pktTxRate == 0) {
@@ -50,6 +46,8 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               npulog(profile, std::cout << module_stack << " received packet "
                                     << phv->id() << std::endl;)
                               
+                              outlog<<phv->id()<<","<<sc_time_stamp().to_default_time_units()<<",";  // NOLINT
+                              
                               npulog(profile, std::cout << module_stack
                                           << " performing lookup on packet " << phv->id() << " ("
                                           << global_table << ")"<< std::endl;)
@@ -60,11 +58,21 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               // have to set it to true so backet can be forwarded from egress correctly
                               phv->setLookupState(true);
 
-                              async_queue.push(phv);
-                              async_rx.notify();
-
                               // helps regulate the throughpt 
                               wait(1/(pktTxRate*1.0), SC_NS);
+                              // can no longer be off the critical path: 
+                              bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
+                              get_p4_objects()->get_control_node(global_table);
+
+                              // note that as is with exact match tble entries, if entry doesn't exist in this match table
+                              // the packet will not match and so you shouldn't see the lookup latency if pfpdebugger
+                              const bm::ControlFlowNode* next_control_flow_node = (*control_flow_node) (phv->packet().get());
+
+                              outlog<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
+
+                              // npulog(profile, std::cout << "NVM wrote packet "<< phv->id() << std::endl;)
+
+
                               // // Write packet
                               npulog(profile, std::cout << module_stack << " wrote packet "
                                     << phv->id() << std::endl;)
@@ -104,46 +112,46 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
  }
 
 void NVMMatchTable::NVMMatchAsyncLookupThread(std::size_t thread_id) {
-      while(1) {
-            // this wait here is being grouped when packets in above thread
-            // are constantly notifying, so we need to clear the queue after
-            // this wait..
-            wait(async_rx);
-            int qsize_rx;
-            async_queue.size(qsize_rx);
-            while(qsize_rx > 0 ) {
-                  auto phv = async_queue.pop();
-                  // this performs the actual lookup - so let's time here to get 
-                  // end-to-end latency
-                  outlog<<phv->id()<<","<<sc_time_stamp().to_default_time_units()<<",";  // NOLINT
+      // while(1) {
+      //       // this wait here is being grouped when packets in above thread
+      //       // are constantly notifying, so we need to clear the queue after
+      //       // this wait..
+      //       wait(async_rx);
+      //       int qsize_rx;
+      //       async_queue.size(qsize_rx);
+      //       while(qsize_rx > 0 ) {
+      //             auto phv = async_queue.pop();
+      //             // this performs the actual lookup - so let's time here to get 
+      //             // end-to-end latency
+      //             outlog<<phv->id()<<","<<sc_time_stamp().to_default_time_units()<<",";  // NOLINT
 
-                  bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
-                              get_p4_objects()->get_control_node(global_table);
+      //             bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
+      //                         get_p4_objects()->get_control_node(global_table);
 
-                  // note that as is with exact match tble entries, if entry doesn't exist in this match table
-                  // the packet will not match and so you shouldn't see the lookup latency if pfpdebugger
-                  const bm::ControlFlowNode* next_control_flow_node = (*control_flow_node) (phv->packet().get());
+      //             // note that as is with exact match tble entries, if entry doesn't exist in this match table
+      //             // the packet will not match and so you shouldn't see the lookup latency if pfpdebugger
+      //             const bm::ControlFlowNode* next_control_flow_node = (*control_flow_node) (phv->packet().get());
 
-                  outlog<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
+      //             outlog<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
 
-                  async_response_queue.push(phv);
-                  async_response.notify();
-            }
-      }
+      //             async_response_queue.push(phv);
+      //             async_response.notify();
+      //       }
+      // }
 }
 
 void NVMMatchTable::NVMMatchAsyncResponseThread(std::size_t thread_id) { 
-      while(1) {
-            /// again, this wait here is being called once for multiple
-            // packets, and so deal with that by checking how ever many
-            // packets are queued up..
-            wait(async_response);
-            int qsize_resp;
-            async_response_queue.size(qsize_resp);
-            while(qsize_resp > 0) {
-                  auto phv = async_response_queue.pop();
-                  npulog(profile, std::cout << "NVM wrote packet "
-                        << phv->id() << std::endl;)
-            }
-      }
+      // while(1) {
+      //       /// again, this wait here is being called once for multiple
+      //       // packets, and so deal with that by checking how ever many
+      //       // packets are queued up..
+      //       wait(async_response);
+      //       int qsize_resp;
+      //       async_response_queue.size(qsize_resp);
+      //       while(qsize_resp > 0) {
+      //             auto phv = async_response_queue.pop();
+      //             npulog(profile, std::cout << "NVM wrote packet "
+      //                   << phv->id() << std::endl;)
+      //       }
+      // }
 }

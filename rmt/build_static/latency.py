@@ -6,6 +6,25 @@ import operator
 import itertools
 import time
 
+# Function for finding first and last
+# occurrence of an elements
+def findFirstAndLast(arr, x) :
+    first = -1
+    last = -1
+    for i in range(0, len(arr)) :
+        if (x != arr[i]) :
+            continue
+        if (first == -1) :
+            first = i
+        last = i
+     
+    if (first != -1) :
+        print( "First Occurrence = ", first,
+               " \nLast Occurrence = ", last)
+        return [first,last]
+    else :
+        print("Not Found")
+
 if __name__=="__main__":
 
     IngressTrace = list(csv.reader(open("IngressTrace.csv"), delimiter=","))
@@ -56,12 +75,18 @@ if __name__=="__main__":
     print "End-to-End Latency:    ", avg_latency
     print "Throughput: ", avg_thrp
 
-    dramTrace = list(csv.reader(open("NVMLookup.csv"), delimiter=","))
-    avg_dram_latency = 0
-    total_pkt = 0
-    for line in dramTrace:
-        avg_dram_latency += float(line[2])-float(line[1])
-        total_pkt+=1
-
-    avg_dram = avg_dram_latency/total_pkt
-    print "Average Lookup Latency: ", avg_dram
+    NVMTrace = list(csv.reader(open("NVMLookup.csv"), delimiter=","))
+    sortedNVMTrace = sorted(NVMTrace, key=lambda x: float(x[0]), reverse=False)
+    avg_nvm_latency = 0
+    
+    pktId = 0
+    for i, line in enumerate(sortedNVMTrace):
+        startTime = sortedNVMTrace[i][1]
+        while line[0] == pktId:
+            i+=1
+        endTime = sortedNVMTrace[i][2]
+        pktId +=1
+        avg_nvm_latency += float(endTime) - float(startTime)
+            
+    avg_nvm = avg_nvm_latency/pktId
+    print "Average Lookup Latency: ", avg_nvm
