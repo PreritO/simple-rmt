@@ -39,11 +39,13 @@ void PersistentSelector::PersistentSelectorThread(std::size_t thread_id) {
       npulog(profile, std::cout << module_stack << " Persistent SELECTOR: received "
             << received_type << " " << received->id() << " at " << sc_time_stamp().to_default_time_units() << std::endl;)
       wait(1/(pktTxRate*1.0), SC_NS);
-      if (!select_out->nb_can_put()) {
-        wait(select_out->ok_to_put());
-      }
       npulog(profile, std::cout << module_stack << " SELECTOR: wrote " << received_type
             << " " << received->id() << " at " << sc_time_stamp().to_default_time_units() << std::endl;)
+      // if (!select_out->nb_can_put()) {
+      //   wait(select_out->ok_to_put());
+      // }
+      
+      // send request to nvm to get vliw action 
       select_out->put(received);
     }
   }

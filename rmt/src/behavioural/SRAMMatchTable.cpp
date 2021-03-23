@@ -52,7 +52,7 @@ void SRAMMatchTable::SRAMMatchTableThread(std::size_t thread_id) {
             npulog(normal, std::cout << module_stack
                   << " performing lookup on packet " << phv->id() << " ("
                   << stage_name << ")"<< std::endl;)
-            // this is where we indicate that a lookup was successfully 
+            // this is where we indicate whether a lookup was successfully 
             // done on the packet
             phv->setLookupState(true);
             const bm::ControlFlowNode* next_control_flow_node =

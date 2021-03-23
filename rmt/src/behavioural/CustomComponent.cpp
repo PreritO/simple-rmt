@@ -31,9 +31,9 @@ void CustomComponent::CustomComponent_PortServiceThread() {
         //check status of lookup here
         if(!phv->getLookupState()) {
           // forward to persistent pipeline here
-          output_to_pp->put(received);
-           npulog(normal, std::cout << module_stack << " forwarding packet "
+          npulog(normal, std::cout << module_stack << " forwarding packet "
               << phv->id() << " to Persistent Pipeline" << std::endl;)
+          output_to_pp->put(received);
         } else {
           npulog(normal, std::cout << module_stack << " forwarding packet "
               << phv->id() << " to Buffer" << std::endl;)
@@ -45,9 +45,9 @@ void CustomComponent::CustomComponent_PortServiceThread() {
         //check status of lookup here
         if(!phv->getLookupState()) {
           // forward to persistent pipeline here
-          output_to_pp->put(received);
            npulog(normal, std::cout << module_stack << " forwarding packet "
               << phv->id() << " to Persistent Pipeline" << std::endl;)
+           output_to_pp->put(received);
         } else {
           npulog(normal, std::cout << module_stack << " forwarding packet "
               << phv->id() << " to Buffer" << std::endl;)

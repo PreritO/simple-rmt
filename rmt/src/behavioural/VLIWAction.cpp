@@ -59,9 +59,9 @@ void VLIWAction::VLIWActionThread(std::size_t thread_id) {
     if (!action_in->nb_can_get()) {
       wait(action_in->ok_to_get());
     } else {
-      if (module_stack.find("pp0") != std::string::npos) {
-        std::cout << "found!" << '\n';
-      }
+      // if (module_stack.find("pp0") != std::string::npos) {
+      //   std::cout << "found!" << '\n';
+      // }
       auto received = action_in->get();
       std::string received_type;
       if (received->data_type() == "PacketHeaderVector") {

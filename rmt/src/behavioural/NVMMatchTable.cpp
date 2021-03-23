@@ -71,18 +71,19 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               // idea is that I write the packet out, and then perform the lookup
                               // not on critical path (similar to rdma request/response idealogy)
                               table_out->put(phv);
-                        } else {
-                              // the following message SHOULD come from cp agent instead...
-                              //SC_REPORT_ERROR("NVM Match Table", "Invalid Command in Table IN queue!");
-                              npulog(profile, std::cout << module_stack << " Invalid Command in Table IN queue: "
-                                    << received_pkt->data_type() << std::endl;)
-                              std::shared_ptr<RMTMessage> msg
-                                    = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
-                              npulog(profile, std::cout << module_stack << " received message "
-                                    << received_pkt->id() << std::endl;)
-                              msg->execute(*this);
-                              cp_agent_out->put(msg);
-                        }
+                        } 
+                        // else {
+                        //       // the following message SHOULD come from cp agent instead...
+                        //       //SC_REPORT_ERROR("NVM Match Table", "Invalid Command in Table IN queue!");
+                        //       npulog(profile, std::cout << module_stack << " Invalid Command in Table IN queue: "
+                        //             << received_pkt->data_type() << std::endl;)
+                        //       std::shared_ptr<RMTMessage> msg
+                        //             = std::dynamic_pointer_cast<RMTMessage>(received_pkt);
+                        //       npulog(profile, std::cout << module_stack << " received message "
+                        //             << received_pkt->id() << std::endl;)
+                        //       msg->execute(*this);
+                        //       cp_agent_out->put(msg);
+                        // }
                   } else if (cp_agent_in->nb_can_get()) {
                         auto received_pkt = cp_agent_in->get();
                         std::shared_ptr<RMTMessage> msg
@@ -91,6 +92,8 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               << received_pkt->id() << std::endl;)
                         npulog(profile, std::cout << module_stack << " received message "
                               << received_pkt->id() << std::endl;)
+                        npulog(profile, std::cout << module_stack << " Message Data Type: "
+                               << received_pkt->data_type() << std::endl;)
                         msg->execute(*this);
                         cp_agent_out->put(msg);
                   } else {

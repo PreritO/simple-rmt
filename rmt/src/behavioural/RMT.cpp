@@ -183,9 +183,12 @@ void RMT::configure_match_stages(std::string p4_json_path) {
     }
     cout << endl;)
 
-    // Send configs to pipelines
-    p0->configure(ingress_match_stages);
-    p2->configure(egress_match_stages);
+    // Send configs to pipelines 
+    // ignoring at the moment because we want to treat the sram's
+    // of each stage as a pure cache..
+
+    // p0->configure(ingress_match_stages);
+    // p2->configure(egress_match_stages);
 
     // Need to modify what configs to send to pp0 as well,
     // right now sending no configs because the match stages assume a 

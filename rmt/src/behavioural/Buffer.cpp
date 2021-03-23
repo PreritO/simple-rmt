@@ -93,11 +93,6 @@ void Buffer::BufferThread(std::size_t thread_id) {
     npulog(profile, cout << module_name() << " popped " << received_type
           << " " << received->id() << " from queue" << endl;)
 
-    if (!buffer_out->nb_can_put()) {
-      wait(buffer_out->ok_to_put());
-    }
-    // write to output port
-    buffer_out->put(received);
     npulog(profile, cout << module_name() << " wrote " << received_type
           << " " << received->id() << endl;)
     npulog(normal, cout << module_name() << " wrote " << received_type
@@ -107,5 +102,10 @@ void Buffer::BufferThread(std::size_t thread_id) {
     if (size == 0) {
       flag_buffer_empty = true;
     }
+    if (!buffer_out->nb_can_put()) {
+      wait(buffer_out->ok_to_put());
+    }
+    // write to output port
+    buffer_out->put(received);
   }
 }
