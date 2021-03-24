@@ -45,7 +45,10 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               std::dynamic_pointer_cast<PacketHeaderVector>(received_pkt);
                               npulog(profile, std::cout << module_stack << " received packet "
                                     << phv->id() << std::endl;)
-                              
+
+                              // helps regulate the throughpt 
+                              wait(1/(pktTxRate*1.0), SC_NS);
+
                               outlog<<phv->id()<<","<<sc_time_stamp().to_default_time_units()<<",";  // NOLINT
                               
                               npulog(profile, std::cout << module_stack
@@ -54,24 +57,18 @@ void NVMMatchTable::NVMMatchTableOriginalThread(std::size_t thread_id) {
                               npulog(normal, std::cout << module_stack
                                     << " performing lookup on packet " << phv->id() << " ("
                                     << global_table << ")"<< std::endl;)
-                              
-                              // have to set it to true so backet can be forwarded from egress correctly
-                              phv->setLookupState(true);
-
-                              // helps regulate the throughpt 
-                              wait(1/(pktTxRate*1.0), SC_NS);
                               // can no longer be off the critical path: 
                               bm::ControlFlowNode* control_flow_node = P4::get("rmt")->
                               get_p4_objects()->get_control_node(global_table);
-
                               // note that as is with exact match tble entries, if entry doesn't exist in this match table
                               // the packet will not match and so you shouldn't see the lookup latency if pfpdebugger
                               const bm::ControlFlowNode* next_control_flow_node = (*control_flow_node) (phv->packet().get());
-
                               outlog<<sc_time_stamp().to_default_time_units()<<endl;  // NOLINT
+                                                            
+                              // have to set it to true so backet can be forwarded from egress correctly
+                              phv->setLookupState(true);
 
                               // npulog(profile, std::cout << "NVM wrote packet "<< phv->id() << std::endl;)
-
 
                               // // Write packet
                               npulog(profile, std::cout << module_stack << " wrote packet "

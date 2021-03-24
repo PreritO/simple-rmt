@@ -79,14 +79,26 @@ if __name__=="__main__":
     sortedNVMTrace = sorted(NVMTrace, key=lambda x: float(x[0]), reverse=False)
     avg_nvm_latency = 0
     
-    pktId = 0
-    for i, line in enumerate(sortedNVMTrace):
-        startTime = sortedNVMTrace[i][1]
-        while line[0] == pktId:
-            i+=1
-        endTime = sortedNVMTrace[i][2]
-        pktId +=1
-        avg_nvm_latency += float(endTime) - float(startTime)
-            
-    avg_nvm = avg_nvm_latency/pktId
-    print "Average Lookup Latency: ", avg_nvm
+    totalpkts = len(sortedEgressTimeTrace)
+    index = 0
+    i = 0
+    while i < len(sortedNVMTrace):
+        curr_pkt_id = sortedNVMTrace[i][0]
+        index = i
+        startTime = sortedNVMTrace[index][1]
+        while(curr_pkt_id == sortedNVMTrace[index][0]):
+            index += 1
+            if index >= len(sortedNVMTrace):
+                break
+        if index >= len(sortedNVMTrace):
+            index = len(sortedNVMTrace) -1
+            break
+        
+        #print "curr pkt id: " , curr_pkt_id, "starts at index: ", i, " ends at index: ", index
+        endTime = sortedNVMTrace[index][2]
+        avg_nvm_latency += (float(endTime) - float(startTime))
+        i += (index - i)
+
+    print "nvm_total_latency: ", avg_nvm_latency, "ns"
+    avg_nvm = avg_nvm_latency/totalpkts
+    print "Average NVM Lookup Latency per packet: ", avg_nvm, "ns"
